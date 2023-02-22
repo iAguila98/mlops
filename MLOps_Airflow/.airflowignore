@@ -1,0 +1,3 @@
+MLOps_Airflow/shared_volume/*
+MLOps_Airflow/dags/scripts/*
+MLOps_Airflow/dags/tests/*
