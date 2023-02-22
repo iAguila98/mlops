@@ -13,9 +13,9 @@ The project focuses on the orchestration part of the workflow and thus the model
 First of all, clone the repository in your local machine. Docker-compose and docker are needed to run the project. Run the following command inside the MLOps_Airflow folder to mount de volumes and raise them in detached mode:
 
 ```commandline
-docker-compose up airflow-init
+docker compose up airflow-init
 
-docker-compose up -d
+docker compose up -d
 ```
 
 Once it finishes, install python dependencies needed as follows:
@@ -26,7 +26,7 @@ docker build .
 
 Finally, we need to run the next command inside mlops folder to initiate the dashboard:
 ```commandline
-streamlit run MLOps_Frontend/Ma/home/paucoll/ML/M5_scripts/mlops/n.py
+streamlit run MLOps_Frontend/Main.py
 ```
 
 A new tab will be opened in our browser with the dashboard. Once there, we can navigate through it using the sidebar. 
