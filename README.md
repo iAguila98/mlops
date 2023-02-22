@@ -17,7 +17,7 @@ docker compose up airflow-init
 
 docker compose up -d
 ```
-
+WARNING: A mi el docker build ., no me ha hecho falta. Posiblemente porque ya está implícito en el docker-compose
 Once it finishes, install python dependencies needed as follows:
 
 ```commandline
