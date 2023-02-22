@@ -11,7 +11,7 @@ The project focuses on the orchestration part of the workflow and thus the model
 ## Quick Start
 
 First of all, clone the repository in your local machine. Docker-compose and docker are needed to run the project. Run the following command inside the MLOps_Airflow folder to mount de volumes and raise them in detached mode:
-
+NOTA: Hay que añadir la instalación de los requirements.txt para la parte de frontend
 ```commandline
 docker compose up airflow-init
 
