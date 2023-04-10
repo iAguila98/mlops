@@ -43,11 +43,12 @@ def train_model(eval_path, train_path, results_path, models_path):
     """
 
     # In case we have different types of models, a condition is necessary
-    model_name = 'linear_T_-1'
+    model_name = 'linear_T_1'
     if model_name.split('_')[0] == 'linear':
-        model = LinearRegression(fit_intercept=True, n_jobs=-1.0)
+        model = LinearRegression(fit_intercept=True, n_jobs=1)
     else:
-        model = LinearRegression(fit_intercept=True, n_jobs=-1.0)
+        logging.info('Model name not implemented.')
+        raise Exception('Model name not implemented.')
 
     # We train the model with the correspondent hyperparameters
     trained_model, train_date = train(model, train_path)
@@ -58,11 +59,11 @@ def train_model(eval_path, train_path, results_path, models_path):
     # Write the row in the results_path csv
     with open(results_path, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow(['linear_T_-1',  # Model name
+        writer.writerow(['linear_T_1',  # Model name
                          results['val_date'],
                          train_date,
                          True,
-                         -1.0,
+                         1,
                          results['mae'],
                          results['wmape'],
                          results['rmse'],
@@ -70,18 +71,18 @@ def train_model(eval_path, train_path, results_path, models_path):
                          False])
 
     # Now we save the trained model with his correspondent name
-    pickle.dump(model, open(models_path + 'linear_T_-1' + '.sav', 'wb'))
+    pickle.dump(model, open(models_path + 'linear_T_1' + '.sav', 'wb'))
 
 
 default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id='linear_T_-1',
+dag = DAG(dag_id='linear_T_1',
           description='DAG that will get triggered monthly to train the correspondent model.',
           schedule='0 0 1 * *',
           default_args=default_args,
-          start_date=datetime(2023, 2, 1),
+          start_date=datetime(2023, 4, 1),
           catchup=False)
 
 with dag:

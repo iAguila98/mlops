@@ -1,16 +1,16 @@
 {
   "conf": {},
-  "dag_id": "linear_F_-1",
-  "dag_run_id": "manual__2023-04-10T10:57:25.275832+00:00",
+  "dag_id": "linear_T_1",
+  "dag_run_id": "manual__2023-04-10T16:07:48.855913+00:00",
   "data_interval_end": "2023-04-01T00:00:00+00:00",
   "data_interval_start": "2023-03-01T00:00:00+00:00",
-  "end_date": "2023-04-10T10:57:36.837040+00:00",
-  "execution_date": "2023-04-10T10:57:25.275832+00:00",
+  "end_date": "2023-04-10T16:08:01.010401+00:00",
+  "execution_date": "2023-04-10T16:07:48.855913+00:00",
   "external_trigger": true,
-  "last_scheduling_decision": "2023-04-10T10:57:36.835464+00:00",
-  "logical_date": "2023-04-10T10:57:25.275832+00:00",
+  "last_scheduling_decision": "2023-04-10T16:08:01.007631+00:00",
+  "logical_date": "2023-04-10T16:07:48.855913+00:00",
   "note": null,
   "run_type": "manual",
-  "start_date": "2023-04-10T10:57:25.621482+00:00",
+  "start_date": "2023-04-10T16:07:49.126128+00:00",
   "state": "success"
 }

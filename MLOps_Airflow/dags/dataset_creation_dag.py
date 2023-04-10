@@ -6,7 +6,7 @@ from airflow.operators.python import PythonOperator
 # from airflow.sensors.external_task import ExternalTaskSensor
 
 default_args = {
-    'owner': 'Pau',
+    'owner': 'Iago',
     'retries': 1,
     'retry_delay': timedelta(minutes=10),
 }

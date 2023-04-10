@@ -15,12 +15,11 @@ First of all, clone the repository in your local machine. Docker-compose and doc
 NOTA: Hay que añadir la instalación de los requirements.txt para la parte de frontend.
 
 NOTA 2: Hay que asegurarse de tener permiso de read-write en todos los shell scripts y ficheros dentro del airflow
-shared_volume.
+shared_volume. Esto se hace con la línea de: echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env
+Esta linea modifica el fichero .env, que en principio ya está correcto y debería funcionar al hacer clone del git.
+
 Para los sh usar el siguiente comando dentro de la carpeta mlops:
 find -type f -iname '*.sh' -not -executable -exec chmod +x {} \;
-Para los archivos en shared_volume, usar el siguiente comando dentro de la carpeta MLOps_Airflow:
-sudo chmod 777 -R shared_volume
-Las carpetas de dags, logs y plugins también tienen que estar con permisos. 
 
 WARNING: Este ultimo comando es peligroso al dar permisos a todos los usuarios, pero en este caso solamente tenemos 
 1 usuario que controle la aplicación. Es necesario porque el creador de estos ficheros es el usuario del airflow, el 

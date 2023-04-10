@@ -15,7 +15,7 @@ from scripts.validation_script import validation
 
 
 default_args = {
-    'owner': 'Pau'
+    'owner': 'Iago'
 }
 
 @provide_session
