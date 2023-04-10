@@ -29,7 +29,7 @@ logo_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAkIAAABXCAMAAADf/dozAA
 st.image(logo_url, width=500)
 st.title('Training models')
 
-st.write('View best performing models and train new ones selecting model type and hyper parameters.')
+st.write('View best performing models and train new ones selecting model type and hyperparameters.')
 historical_path = 'MLOps_Airflow/shared_volume/historical_validation.csv'
 
 
@@ -70,13 +70,17 @@ if model_type == 'Linear regression':
     # Save the model path
     model_path = 'MLOps_Airflow/shared_volume/models/' + model_name + '.sav'
 
+    # Initialize dug_run_id argument used to check the dag run status
     if 'dag_run_id' not in st.session_state:
         st.session_state.dag_run_id = ''
-    if 'run_ready' not in st.session_state:
-        st.session_state.run_ready = False
 
+    # Initialize the state variable used to define the while loop
+    state = ''
+
+    # Define the 'launch training' button and what it should execute
     if st.button('Launch Training'):
 
+        # Write an initial row in the historical_validation dataset
         with open(historical_path, 'a') as f_object:
             dictwriter_object = DictWriter(f_object, fieldnames=h_dataset.columns)
             dictwriter_object.writerow(training_dict)
@@ -98,53 +102,48 @@ if model_type == 'Linear regression':
                 os.remove('MLOps_Airflow/shared_volume/dag_run_info.json')
                 break
 
-        st.session_state.run_ready = True
+        # St.empty() allows to overwrite messages that are shown to the user in streamlit
+        with st.empty():
 
-        st.success('The trigger has been executed. Click Refresh to check the run status.', icon="✅")
-        st.warning('WARNING: If you click LAUNCH TRAINING again, the button will trigger another training execution.'
-                   , icon="⚠️")
+            # Inform that the trigger has been successfully ordered
+            st.success('The trigger has been successfully ordered.', icon="✅")
 
-    # Initialize refresh button
-    refresh_button = st.button('Check Run Status')
+            # As long as the process has not been completed, whether successfully or not, keep in the loop.
+            while state != 'success' and state != 'failed':
 
-    # Refresh button to check the run status after the trigger execution (training button)
-    if refresh_button is True and st.session_state.run_ready is True:
+                # Initialize arguments used in the request to REST API
+                dag_id = model_name
+                dag_run_id = st.session_state.dag_run_id
 
-        # Initialize arguments used in the request to REST API
-        dag_id = model_name
-        dag_run_id = st.session_state.dag_run_id
+                # Execute the request which returns the info about the DAG run and save it
+                file_ = open('MLOps_Frontend/run_status.json', 'w')
+                subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
+                time.sleep(2)  # Give some time to make the request and obtain the DAG run info
 
-        # Execute the request which returns the info about the DAG run and save it
-        file_ = open('MLOps_Frontend/run_status.json', 'w')
-        subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
-        time.sleep(2)  # Give some time to make the request and obtain the DAG run info
+                # Check the run status
+                try:
+                    # Read the status from the DAG run info extracted
+                    f = open('MLOps_Frontend/run_status.json')
+                    data = json.load(f)
+                    state = data['state']
 
-        # Check the run status
-        try:
-            # Read the status from the DAG run info extracted
-            f = open('MLOps_Frontend/run_status.json')
-            data = json.load(f)
-            state = data['state']
-
-            # Conditions to show messages to the user depending on the DAG run status
-            if state == 'success':
-                st.success('The training is completed.', icon="✅")
-            elif state == 'failed':
-                st.error('The training has failed.', icon="🚨")
-            elif state == 'running':
-                st.info('The process is running.', icon="ℹ️")
-            else:
-                st.warning(
-                    'Status not expected. Please check the status in the Airflow Webserver: http://localhost:8080/'
-                    , icon="ℹ️")
-        # Raise an exception if run_status.json does not exist
-        except:
-            st.error('No training has been ordered.', icon="🚨")
-
-    # If the launch training process has not finished yet, display the following message
-    if refresh_button is True and st.session_state.run_ready is False:
-        st.info('The trigger has not been processed yet, please try again in a few minutes.', icon="ℹ️")
-
+                    # Conditions to show messages to the user depending on the DAG run status
+                    if state == 'success':
+                        st.success('The training is completed.', icon="✅")
+                    elif state == 'failed':
+                        st.error('The training has failed.', icon="🚨")
+                    elif state == 'running':
+                        st.info('The training is being performed.', icon="ℹ️")
+                    elif state == 'queued':
+                        st.info('The training is in queue.', icon="ℹ️")
+                    else:
+                        st.info(
+                            'Status not expected. Please check the status in the Airflow Webserver: http://localhost:8080/'
+                            , icon="ℹ️")
+                # Raise an exception if run_status.json does not exist
+                except:
+                    st.error('No training has been detected, please try again.', icon="🚨")
+                    state = 'failed'
 
 elif model_type == 'Select Model Type':
     pass
