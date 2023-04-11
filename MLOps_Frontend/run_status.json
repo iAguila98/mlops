@@ -1,16 +1,16 @@
 {
   "conf": {},
-  "dag_id": "linear_T_2",
-  "dag_run_id": "manual__2023-04-10T17:44:07.436099+00:00",
+  "dag_id": "linear_T_3",
+  "dag_run_id": "manual__2023-04-11T12:51:13.916435+00:00",
   "data_interval_end": "2023-04-01T00:00:00+00:00",
   "data_interval_start": "2023-03-01T00:00:00+00:00",
-  "end_date": "2023-04-10T17:49:16.758813+00:00",
-  "execution_date": "2023-04-10T17:44:07.436099+00:00",
+  "end_date": null,
+  "execution_date": "2023-04-11T12:51:13.916435+00:00",
   "external_trigger": true,
-  "last_scheduling_decision": "2023-04-10T17:49:16.756186+00:00",
-  "logical_date": "2023-04-10T17:44:07.436099+00:00",
+  "last_scheduling_decision": null,
+  "logical_date": "2023-04-11T12:51:13.916435+00:00",
   "note": null,
   "run_type": "manual",
-  "start_date": "2023-04-10T17:49:05.388225+00:00",
-  "state": "success"
+  "start_date": null,
+  "state": "queued"
 }

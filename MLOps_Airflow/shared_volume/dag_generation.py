@@ -28,10 +28,12 @@ new_filename = 'MLOps_Airflow/dags/' + dag_id + '.py'
 if not os.path.exists(new_filename):
     logging.info('Model not detected, creating a new model...')
 
+    # ESTO DEBE CAMBIARSE SI SE AÑADEN OTROS MODELOS Y OTROS HIPERPARAMETROS
+
     # Reading the hyperparameters of the model
     hyperparameters = []
     initial_hyperparameter = 3  # First hyperparameter is column index = 3 in the historical dataset
-    last_hyperparameter = data.shape[1]-5 # Last 5 columns corresponds to performance and train_requested columns
+    last_hyperparameter = data.shape[1]-5  # Last 5 columns corresponds to performance and train_requested columns
     for i in range(initial_hyperparameter, last_hyperparameter):
         hyperparameters.append(filtered_data.iloc[0][i])
 
@@ -43,8 +45,11 @@ if not os.path.exists(new_filename):
     df.to_json('MLOps_Airflow/shared_volume/dag_info.json')
 
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
-    while True:
+    num_retries = 2
+    sleep_time = 2
+    for x in range(0, num_retries):  # Try 200 times
         try:
+            dag_error = None
             # Execute shell scripts that gets the basic information of the DAG
             file_ = open('MLOps_Airflow/shared_volume/dag_info.json', 'w')
             subprocess.Popen(['MLOps_Airflow/shared_volume/check_dag_exists.sh', dag_id], stdout=file_)
@@ -58,22 +63,30 @@ if not os.path.exists(new_filename):
             status = data['dag_id']
 
         # When the DAG does not exist, we can't read the 'dag_id' key so the loop continues
-        except:
-            continue
+        except Exception as e:
+            dag_error = str(e)
 
+        if dag_error:
+            time.sleep(sleep_time)
         # When the DAG exists, the status variable will save the 'dag_id' from the json and the loop will end
         else:
             os.remove('MLOps_Airflow/shared_volume/dag_info.json')
             break
 
-    # Create an empty json where we will save the run information
-    df = pd.DataFrame()
-    df.to_json('MLOps_Airflow/shared_volume/dag_run_info.json')
+    # Execute the following code only when the number of attempts has not been exceeded
+    if not dag_error:
+        # Create an empty json where we will save the run information
+        df = pd.DataFrame()
+        df.to_json('MLOps_Airflow/shared_volume/dag_run_info.json')
 
-    # Now we can trigger the DAG manually and save the dag run information
-    file_ = open('MLOps_Airflow/shared_volume/dag_run_info.json', 'w')
-    subprocess.Popen(['MLOps_Airflow/shared_volume/trigger_train.sh', dag_id], stdout=file_)
-
+        # Now we can trigger the DAG manually and save the dag run information
+        file_ = open('MLOps_Airflow/shared_volume/dag_run_info.json', 'w')
+        subprocess.Popen(['MLOps_Airflow/shared_volume/trigger_train.sh', dag_id], stdout=file_)
+    else:
+        # Send a message to be aware of the error
+        logging.error('Number of attemps exceeded.')
+        # We need to delete the file to start a new experiment
+        os.remove('MLOps_Airflow/shared_volume/dag_info.json')
 
 # If the DAG already exists we just trigger it and save the dag run information
 else:

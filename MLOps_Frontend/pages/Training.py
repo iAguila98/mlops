@@ -80,6 +80,13 @@ if model_type == 'Linear regression':
     # Define the 'launch training' button and what it should execute
     if st.button('Launch Training'):
 
+        # Inform the user if the model already exists or not
+        if os.path.exists(model_path):
+            st.info('The model already exists. It is going to be retrained.', icon="ℹ️")
+        else:
+            st.info('The model does not exist. New orchestrated task is being generated. This process could '
+                    'take a few minutes.', icon="ℹ️")
+
         # Write an initial row in the historical_validation dataset
         with open(historical_path, 'a') as f_object:
             dictwriter_object = DictWriter(f_object, fieldnames=h_dataset.columns)
@@ -87,20 +94,25 @@ if model_type == 'Linear regression':
 
         # Execute the dag_generation code to create the dag file
         cmd = ['python', 'MLOps_Airflow/shared_volume/dag_generation.py']
-        subprocess.Popen(cmd)
+        p = subprocess.Popen(cmd)
+        p.wait()  # Waits until the subprocess is finished
 
-        # Wait until it detects a DAG run and save the dag_run_id to check its status
-        while True:
-            try:
-                # Read the dag_run_id in the json file
-                f = open('MLOps_Airflow/shared_volume/dag_run_info.json')
-                data = json.load(f)
-                st.session_state.dag_run_id = data['dag_run_id']
-            except:
-                continue
-            else:
-                os.remove('MLOps_Airflow/shared_volume/dag_run_info.json')
-                break
+        # Wait two seconds to ensure that the json has been created in the subprocess
+        time.sleep(2)
+
+        # Try read the json file. If it does not exist, it means that it reached the maximum number of attempts
+        try:
+            att_error = None
+            # Read and save the dag_run_id in the json file
+            f = open('MLOps_Airflow/shared_volume/dag_run_info.json')
+            data = json.load(f)
+            st.session_state.dag_run_id = data['dag_run_id']
+            os.remove('MLOps_Airflow/shared_volume/dag_run_info.json')
+        except Exception as e:
+            att_error = e
+
+        # ERROR --> Cuando se llega al numero maximo de intentos, la ejecución debería pararse. Por lo que la siguiente
+        # parte del código NO debe ser ejecutada. Hacerlo con un if error?? o poniendolo dentro del try
 
         # St.empty() allows to overwrite messages that are shown to the user in streamlit
         with st.empty():
@@ -117,33 +129,30 @@ if model_type == 'Linear regression':
 
                 # Execute the request which returns the info about the DAG run and save it
                 file_ = open('MLOps_Frontend/run_status.json', 'w')
-                subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
-                time.sleep(2)  # Give some time to make the request and obtain the DAG run info
+                p = subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
+                p.wait()  # Waits until the subprocess is finished
 
-                # Check the run status
-                try:
-                    # Read the status from the DAG run info extracted
-                    f = open('MLOps_Frontend/run_status.json')
-                    data = json.load(f)
-                    state = data['state']
+                # Read the status from the DAG run info extracted
+                f = open('MLOps_Frontend/run_status.json')
+                data = json.load(f)
+                state = data['state']
 
-                    # Conditions to show messages to the user depending on the DAG run status
-                    if state == 'success':
-                        st.success('The training is completed.', icon="✅")
-                    elif state == 'failed':
-                        st.error('The training has failed.', icon="🚨")
-                    elif state == 'running':
-                        st.info('The training is being performed.', icon="ℹ️")
-                    elif state == 'queued':
-                        st.info('The training is in queue.', icon="ℹ️")
-                    else:
-                        st.info(
-                            'Status not expected. Please check the status in the Airflow Webserver: http://localhost:8080/'
-                            , icon="ℹ️")
-                # Raise an exception if run_status.json does not exist
-                except:
-                    st.error('No training has been detected, please try again.', icon="🚨")
-                    state = 'failed'
+                # Conditions to show messages to the user depending on the DAG run status
+                if state == 'success':
+                    st.success('The training is completed.', icon="✅")
+                elif state == 'failed':
+                    st.error('The training has failed.', icon="🚨")
+                elif state == 'running':
+                    st.info('The training is being performed.', icon="ℹ️")
+                elif state == 'queued':
+                    st.info('The training is in queue.', icon="ℹ️")
+                else:
+                    st.info(
+                        'Status not expected. Please check the status in the Airflow Webserver: http://localhost:8080/'
+                        , icon="ℹ️")
+
+                # Wait 2 seconds before repeating the iteration again
+                time.sleep(2)
 
 elif model_type == 'Select Model Type':
     pass
