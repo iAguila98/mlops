@@ -84,7 +84,7 @@ if model_type == 'Linear regression':
         if os.path.exists(model_path):
             st.info('The model already exists. It is going to be retrained.', icon="ℹ️")
         else:
-            st.info('The model does not exist. New orchestrated task is being generated. This process could '
+            st.info('The model does not exist. New orchestrated task is going to be generated. This process could '
                     'take a few minutes.', icon="ℹ️")
 
         # Write an initial row in the historical_validation dataset
@@ -111,48 +111,60 @@ if model_type == 'Linear regression':
         except Exception as e:
             att_error = e
 
-        # ERROR --> Cuando se llega al numero maximo de intentos, la ejecución debería pararse. Por lo que la siguiente
-        # parte del código NO debe ser ejecutada. Hacerlo con un if error?? o poniendolo dentro del try
+        # If the maximum number of attempts to detect the new DAG is not reached, then executes the following code
+        if not att_error:
 
-        # St.empty() allows to overwrite messages that are shown to the user in streamlit
-        with st.empty():
+            # St.empty() allows to overwrite messages that are shown to the user in streamlit
+            with st.empty():
 
-            # Inform that the trigger has been successfully ordered
-            st.success('The trigger has been successfully ordered.', icon="✅")
+                # Inform that the trigger has been successfully ordered
+                st.success('The training has been successfully ordered.', icon="✅")
+                time.sleep(3)  # Give time to the user to read the message
 
-            # As long as the process has not been completed, whether successfully or not, keep in the loop.
-            while state != 'success' and state != 'failed':
+                # As long as the process has not been completed, whether successfully or not, keep in the loop.
+                while state != 'success' and state != 'failed':
 
-                # Initialize arguments used in the request to REST API
-                dag_id = model_name
-                dag_run_id = st.session_state.dag_run_id
+                    # Initialize arguments used in the request to REST API
+                    dag_id = model_name
+                    dag_run_id = st.session_state.dag_run_id
 
-                # Execute the request which returns the info about the DAG run and save it
-                file_ = open('MLOps_Frontend/run_status.json', 'w')
-                p = subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
-                p.wait()  # Waits until the subprocess is finished
+                    # Execute the request which returns the info about the DAG run and save it
+                    file_ = open('MLOps_Frontend/run_status.json', 'w')
+                    p = subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
+                    p.wait()  # Waits until the subprocess is finished
 
-                # Read the status from the DAG run info extracted
-                f = open('MLOps_Frontend/run_status.json')
-                data = json.load(f)
-                state = data['state']
+                    # Read the status from the DAG run info extracted
+                    f = open('MLOps_Frontend/run_status.json')
+                    data = json.load(f)
+                    state = data['state']
 
-                # Conditions to show messages to the user depending on the DAG run status
-                if state == 'success':
-                    st.success('The training is completed.', icon="✅")
-                elif state == 'failed':
-                    st.error('The training has failed.', icon="🚨")
-                elif state == 'running':
-                    st.info('The training is being performed.', icon="ℹ️")
-                elif state == 'queued':
-                    st.info('The training is in queue.', icon="ℹ️")
-                else:
-                    st.info(
-                        'Status not expected. Please check the status in the Airflow Webserver: http://localhost:8080/'
-                        , icon="ℹ️")
+                    # Conditions to show messages to the user depending on the DAG run status
+                    if state == 'success':
+                        st.success('The training is completed.', icon="✅")
+                    elif state == 'failed':
+                        st.error('The training has failed.', icon="🚨")
+                    elif state == 'running':
+                        st.info('The training is being performed.', icon="ℹ️")
+                    elif state == 'queued':
+                        st.info('The training is in queue.', icon="ℹ️")
+                    else:
+                        st.info('Status not expected. Please check the status in the Airflow Webserver: '
+                                'http://localhost:8080/', icon="ℹ️")
 
-                # Wait 2 seconds before repeating the iteration again
-                time.sleep(2)
+                    # Wait 2 seconds before repeating the iteration again
+                    time.sleep(2)
+
+                # Delete the run_status.json when the training is finished
+                os.remove('MLOps_Frontend/run_status.json')
+
+        # Inform the user about that the process of creating a new DAG is taking too long
+        else:
+            st.warning('Airflow is taking too long to detect the new model. This process is '
+                       'still running in the background.'
+                       , icon="⚠️")
+            st.warning('You still cannot order the training of the new model, please wait a few minutes and '
+                       'try again.', icon="⚠️")
+
 
 elif model_type == 'Select Model Type':
     pass

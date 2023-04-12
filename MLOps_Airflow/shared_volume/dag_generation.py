@@ -45,17 +45,16 @@ if not os.path.exists(new_filename):
     df.to_json('MLOps_Airflow/shared_volume/dag_info.json')
 
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
-    num_retries = 2
+    num_retries = 150
     sleep_time = 2
-    for x in range(0, num_retries):  # Try 200 times
+    dag_error = None
+    for x in range(0, num_retries):  # Try 150 times, aprox. 5 minutes of waiting
         try:
             dag_error = None
             # Execute shell scripts that gets the basic information of the DAG
             file_ = open('MLOps_Airflow/shared_volume/dag_info.json', 'w')
-            subprocess.Popen(['MLOps_Airflow/shared_volume/check_dag_exists.sh', dag_id], stdout=file_)
-
-            # Wait some time until the output file is written
-            time.sleep(2)
+            p = subprocess.Popen(['MLOps_Airflow/shared_volume/check_dag_exists.sh', dag_id], stdout=file_)
+            p.wait()  # Waits until the subprocess is finished
 
             # Check the status of the DAG. If it is 404 it means that it is still not created
             f = open('MLOps_Airflow/shared_volume/dag_info.json')
@@ -84,7 +83,7 @@ if not os.path.exists(new_filename):
         subprocess.Popen(['MLOps_Airflow/shared_volume/trigger_train.sh', dag_id], stdout=file_)
     else:
         # Send a message to be aware of the error
-        logging.error('Number of attemps exceeded.')
+        logging.error('Number of attempts exceeded.')
         # We need to delete the file to start a new experiment
         os.remove('MLOps_Airflow/shared_volume/dag_info.json')
 
