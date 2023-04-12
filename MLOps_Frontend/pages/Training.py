@@ -107,6 +107,7 @@ if model_type == 'Linear regression':
             f = open('MLOps_Airflow/shared_volume/dag_run_info.json')
             data = json.load(f)
             st.session_state.dag_run_id = data['dag_run_id']
+            # Delete the json that contains the dag run id, used to check the status of the run
             os.remove('MLOps_Airflow/shared_volume/dag_run_info.json')
         except Exception as e:
             att_error = e
@@ -118,7 +119,7 @@ if model_type == 'Linear regression':
             with st.empty():
 
                 # Inform that the trigger has been successfully ordered
-                st.success('The training has been successfully ordered.', icon="✅")
+                st.info('The training has been successfully ordered.', icon="ℹ️")
                 time.sleep(3)  # Give time to the user to read the message
 
                 # As long as the process has not been completed, whether successfully or not, keep in the loop.
