@@ -5,8 +5,6 @@ import scripts.custom_metrics as custom_metrics
 from scripts.parameters import get_parameters
 
 
-# MISSING the Logging configuration to read the INFO while executing.
-
 def validation(model, model_name, eval_path):
     """
     Given a model and a dataset, perform a validation using 4 different metrics.

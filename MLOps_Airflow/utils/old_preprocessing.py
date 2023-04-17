@@ -157,7 +157,7 @@ class DropNa(BaseEstimator, TransformerMixin):
         return X
 
 
-def preprocessing_pipeline(dataset, 
+def preprocessing_pipeline(dataset,
     del_attr=['id', 'item_id', 'dept_id', 'store_id', 'd', 'wm_yr_wk', 'weekday', 'year'],
     classification=False
     ):

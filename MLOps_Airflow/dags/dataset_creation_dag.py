@@ -75,7 +75,7 @@ with DAG(
         task_id='eval_dataset',
         python_callable=get_test_df,
         op_kwargs={
-            'data_path': './shared_volume/preprocessed_data.csv',
+            'data_path': './shared_volume/old_preprocessed_data.csv',
             'val_path': './shared_volume/test_data.csv'
         }
     )
@@ -84,7 +84,7 @@ with DAG(
         task_id='train_dataset',
         python_callable=get_train_df,
         op_kwargs={
-            'data_path': './shared_volume/preprocessed_data.csv',
+            'data_path': './shared_volume/old_preprocessed_data.csv',
             'train_path': './shared_volume/train_data.csv'
         }
     )

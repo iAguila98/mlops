@@ -29,7 +29,7 @@ def main():
         train_classifier.evaluate(model=model, test_X=test_X, test_y=test_y)
 
     else:
-        path = 'save_volume/preprocessed_data.csv'
+        path = 'save_volume/old_preprocessed_data.csv'
         logging.info('Reading the dataset.')
         dataset = pd.read_csv(path, index_col=0)
 

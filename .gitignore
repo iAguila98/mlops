@@ -1,10 +1,14 @@
 *.log
 *.pyc
+.idea/*
+
 MLOps_Airflow/dags/scripts/__pycache__/*
 MLOps_Airflow/logs/scheduler/*
-.idea/*
-MLOps_Airflow/shared_volume/preprocessed_data.csv
+MLOps_Airflow/utils/old_preprocessed_data.csv
+MLOps_Airflow/utils/old_extracted.csv
 MLOps_Airflow/shared_volume/test_data.csv
 MLOps_Airflow/shared_volume/train_data.csv
 MLOps_Airflow/shared_volume/extracted.csv
+MLOps_Airflow/shared_volume/preprocessed_data.csv
+
 MLOps_Frontend/run_status.json

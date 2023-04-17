@@ -101,7 +101,7 @@ def create_dag(dag_id, schedule, default_args, hyperparameters):
             task_id='train_dataset',
             python_callable=get_train_df,
             op_kwargs={
-                'data_path': './shared_volume/preprocessed_data.csv',
+                'data_path': './shared_volume/old_preprocessed_data.csv',
                 'train_path': './shared_volume/train_data.csv'
             }
         )

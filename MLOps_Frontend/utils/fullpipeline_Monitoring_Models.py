@@ -22,7 +22,7 @@ with open('MLOps_Airflow/shared_volume/models/linear_T_1.sav', 'rb') as li:
 @st.cache
 def load_data():
     # Read dataset and perform the splitting
-    dataset = pd.read_csv('MLOps_Airflow/shared_volume/preprocessed_data.csv', index_col=0)
+    dataset = pd.read_csv('MLOps_Airflow/shared_volume/old_preprocessed_data.csv', index_col=0)
     # Split the dataset
     _, _, val_data, val_label, test_data, test_label = custom_web.splitting(dataset)
 

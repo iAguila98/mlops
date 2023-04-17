@@ -62,13 +62,13 @@ def train_model(eval_path, train_path, results_path, models_path):
 
 
 # Aquests serien els path oficials pel DAG
-#data_path = './shared_volume/preprocessed_data.csv'
+#data_path = './shared_volume/old_preprocessed_data.csv'
 #train_path = './shared_volume/train_data.csv'
 #model_path = './shared_volume/models/linear_T_1.sav'
 #results_path = './shared_volume/historical_training.csv'
 
 # Aquests son els path per fer debugging
-data_path = '/MLOps_Airflow/shared_volume/preprocessed_data.csv'
+data_path = '/MLOps_Airflow/shared_volume/old_preprocessed_data.csv'
 eval_path = '/MLOps_Airflow/shared_volume/test_data.csv'
 train_path = '/MLOps_Airflow/shared_volume/train_data.csv'
 results_path = '/MLOps_Airflow/shared_volume/historical_validation.csv'

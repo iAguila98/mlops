@@ -5,6 +5,7 @@ import pandas as pd
 
 from datetime import datetime, timedelta
 
+import preprocessing
 
 def generate_data(data_batch_path):
     """
@@ -122,10 +123,16 @@ def new_snaps(new_data):
     return new_data
 
 
-# Generate new batch of data
-new_batch_data = generate_data('batch_data.csv')
+# Generate new batch of data and save it to use it as base for the next batch
+new_batch_data = generate_data('initial_batch_data.csv')
 new_batch_data.to_csv('batch_data.csv', index=False)
 
-# Preprocess the new batch of data and add it to the preprocessed dataset
+# Add new batch to the original dataset
+#original_data = pd.read_csv('extracted.csv')
+
+
+# Preprocess the data taking into account the new batch
+#preprocessed_batch = preprocessing.preprocessing_pipeline()
+#preprocessed_batch.to_csv('preprocessed_data.csv')
 
 
