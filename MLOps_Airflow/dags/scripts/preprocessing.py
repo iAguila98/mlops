@@ -64,12 +64,12 @@ class CategoricalEncoder(BaseEstimator, TransformerMixin):
                             'snap_CA', 'snap_TX', 'snap_WI'])
 
         # Apply Target Encoding. The training set will only have information in its dates. The same for the test set.
-        transformed_train = self.tr_enc.fit_transform(X[X['date'] >= '2013-12-31'][self.tr_attr],
-                                                      X[X['date'] >= '2013-12-31']['sales'],
+        transformed_train = self.tr_enc.fit_transform(X[X['date'] >= '2014-01-30'][self.tr_attr],
+                                                      X[X['date'] >= '2014-01-30']['sales'],
                                                       smoothing=1.0)
 
-        transformed_test = self.tr_enc.fit_transform(X[X['date'] < '2013-12-31'][self.tr_attr],
-                                                     X[X['date'] < '2013-12-31']['sales'],
+        transformed_test = self.tr_enc.fit_transform(X[X['date'] < '2014-01-30'][self.tr_attr],
+                                                     X[X['date'] < '2014-01-30']['sales'],
                                                      smoothing=1.0)
 
         transformed_data = pd.concat([transformed_train, transformed_test], ignore_index=True)
