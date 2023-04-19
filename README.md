@@ -21,19 +21,15 @@ Esta linea modifica el fichero .env, que en principio ya está correcto y deber�
 Para los sh usar el siguiente comando dentro de la carpeta mlops:
 find -type f -iname '*.sh' -not -executable -exec chmod +x {} \;
 
-WARNING: Este ultimo comando es peligroso al dar permisos a todos los usuarios, pero en este caso solamente tenemos 
-1 usuario que controle la aplicación. Es necesario porque el creador de estos ficheros es el usuario del airflow, el 
-cual es diferente al usuario que controla el frontend (el personal). Entonces detecta que no somos el creador y que no
-podemos darle permisos. Como no se puede cambiar de creador por temas de funcionalidad, entonces se aplica el comando
-mencionado.
-
 ```commandline
 docker compose up airflow-init
 
 docker compose up -d
 ```
-WARNING: A mi el docker build ., no me ha hecho falta. Posiblemente porque ya está implícito en el docker-compose
 Once it finishes, install python dependencies needed as follows:
+
+WARNING: A mi el docker build ., no me ha hecho falta. Posiblemente porque ya está implícito en el docker compose up
+airflow-init.
 
 ```commandline
 docker build .
@@ -46,7 +42,12 @@ streamlit run MLOps_Frontend/Main.py
 
 A new tab will be opened in our browser with the dashboard. Once there, we can navigate through it using the sidebar. 
 
-To acces the airflow UI, you need to open the localhost:8080 in a browser and the credentials are set in the docker-compose.yaml file, which are user: airflow; password: airflow.
+To acces the airflow UI, you need to open the localhost:8080 in a browser. The credentials are set in the docker-compose.yaml file, which are:
+
+USER: airflow
+
+PASSWORD: airflow
+
 <!--
 ## Installation
 explicar la instalació dels requirements.txt. Tot pel correr el projecte en local. En principi no fa falta perque

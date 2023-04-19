@@ -63,7 +63,7 @@ def preprocess_data(data_path, pre_data_path, train_path):
 
 with DAG(
         dag_id='dataset_creation',
-        description='DAG that will get trigger daily to create train and evaluate datasets.',
+        description='DAG that will get trigger daily to add new data, preprocess it and get the train set.',
         schedule='0 0 * * *',
         default_args=default_args,
         start_date=datetime(2023, 1, 1),

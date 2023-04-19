@@ -1,3 +1,4 @@
 scikit-learn
+category-encoders
 PyYAML
 pandas

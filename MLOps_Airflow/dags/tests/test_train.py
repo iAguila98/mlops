@@ -6,7 +6,7 @@ import time
 import unittest
 
 from MLOps_Airflow.dags.linear_T_1 import train_model
-from MLOps_Airflow.dags.old_dataset_creation_dag import get_test_df, get_train_df
+from MLOps_Airflow.utils.old_dataset_creation_dag import get_test_df, get_train_df
 
 
 base_path = re.search(r'.+(mlops)', os.getcwd())[0]
