@@ -24,12 +24,11 @@ find -type f -iname '*.sh' -not -executable -exec chmod +x {} \;
 ```commandline
 docker compose up airflow-init
 
-docker compose up -d
+docker compose up -d --build
 ```
-Once it finishes, install python dependencies needed as follows:
-
-WARNING: A mi el docker build ., no me ha hecho falta. Posiblemente porque ya está implícito en el docker compose up
-airflow-init.
+NOTA --> Comentar que el --build lo que hace es instalar las dependencias necesarias
+para los DAGs. En principio se debe hacer solamente la primera vez que se enciende
+docker compose.
 
 ```commandline
 docker build .

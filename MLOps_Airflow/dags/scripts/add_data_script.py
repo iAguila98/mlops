@@ -5,12 +5,15 @@ import pandas as pd
 
 from datetime import datetime, timedelta
 
-def generate_data(data_batch_path):
+from preprocessing import preprocessing_pipeline
+def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
     """
 
     Parameters
     ----------
     data_batch_path
+    events_dict_path
+    snaps_dict_path
 
     Returns
     -------
@@ -53,10 +56,10 @@ def generate_data(data_batch_path):
     new_data = new_data.assign(year=int(new_data['date'].unique()[0][:4]))
 
     # Modifying the 'event' columns
-    new_data = new_events(new_data)
+    new_data = new_events(new_data, events_dict_path)
 
     # Modifying the 'snap' columns
-    new_data = new_snaps(new_data)
+    new_data = new_snaps(new_data, snaps_dict_path)
 
     # Modifying the 'sell_price' column
     prices = new_data['sell_price'].values.tolist()
@@ -68,18 +71,19 @@ def generate_data(data_batch_path):
     return new_data
 
 
-def new_events(new_data):
+def new_events(new_data, events_dict_path):
     """
 
     Parameters
     ----------
     new_data
+    events_dict_path
 
     Returns
     -------
 
     """
-    with open('events_dictionary.pkl', 'rb') as f:
+    with open(events_dict_path, 'rb') as f:
         year_events_dict = pickle.load(f)
 
     for dict_date in year_events_dict:
@@ -95,18 +99,19 @@ def new_events(new_data):
     return new_data
 
 
-def new_snaps(new_data):
+def new_snaps(new_data, snaps_dict_path):
     """
 
     Parameters
     ----------
     new_data
+    snaps_dict_path
 
     Returns
     -------
 
     """
-    with open('snaps_dictionary.pkl', 'rb') as f:
+    with open(snaps_dict_path, 'rb') as f:
         year_snaps_dict = pickle.load(f)
 
     for dict_date in year_snaps_dict:
@@ -119,5 +124,3 @@ def new_snaps(new_data):
                                snap_TX=snaps_day[1],
                                snap_WI=snaps_day[2])
     return new_data
-
-

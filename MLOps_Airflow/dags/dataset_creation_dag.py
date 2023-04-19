@@ -14,24 +14,27 @@ default_args = {
 }
 
 
-def add_data(data_path, data_batch_path):
+def add_data(data_path, data_batch_path, events_dict_path, snaps_dict_path):
     """
 
     Parameters
     ----------
     data_path
     data_batch_path
+    events_dict_path
+    snaps_dict_path
 
     Returns
     -------
 
     """
     # Generate new batch of data and save it to use it as base for the next batch
-    new_batch_data = generate_data(data_batch_path)
-    new_batch_data.to_csv(data_batch_path, index=False, header=False)
+    new_batch_data = generate_data(data_batch_path, events_dict_path, snaps_dict_path)
+    new_batch_data.to_csv(data_batch_path, index=False)
 
     # Add new batch to the original csv dataset
     with open(data_batch_path, 'r') as f1:
+        next(f1)
         batch = f1.read()
 
     with open(data_path, 'a') as f2:
@@ -57,7 +60,8 @@ def preprocess_data(data_path, pre_data_path, train_path):
     preprocessed_data.to_csv(pre_data_path)
 
     # Prepare and save train dataset
-    train_set = preprocessed_data[preprocessed_data['date'] >= '2014-01-30']
+    train_data = preprocessed_data[preprocessed_data['date'] >= '2014-01-30']
+    train_set = train_data.set_index('date')
     train_set.to_csv(train_path)
 
 
@@ -75,7 +79,9 @@ with DAG(
         python_callable=add_data,
         op_kwargs={
             'data_path': './shared_volume/extracted.csv',
-            'data_batch_path': './shared_volume/batch_data.csv'
+            'data_batch_path': './shared_volume/batch_data.csv',
+            'events_dict_path': './shared_volume/events_dictionary.pkl',
+            'snaps_dict_path': './shared_volume/snaps_dictionary.pkl'
         }
     )
 
