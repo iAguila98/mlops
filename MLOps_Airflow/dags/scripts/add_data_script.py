@@ -5,7 +5,7 @@ import pandas as pd
 
 from datetime import datetime, timedelta
 
-from preprocessing import preprocessing_pipeline
+
 def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
     """
 

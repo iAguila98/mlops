@@ -41,7 +41,7 @@ def add_data(data_path, data_batch_path, events_dict_path, snaps_dict_path):
         f2.write(batch)
 
 
-def preprocess_data(data_path, pre_data_path, train_path):
+def preprocess_split_data(data_path, pre_data_path, train_path, test_path):
     """
 
     Parameters
@@ -49,6 +49,7 @@ def preprocess_data(data_path, pre_data_path, train_path):
     data_path
     pre_data_path
     train_path
+    test_path
 
     Returns
     -------
@@ -59,10 +60,20 @@ def preprocess_data(data_path, pre_data_path, train_path):
     preprocessed_data = preprocessing_pipeline(new_data)
     preprocessed_data.to_csv(pre_data_path)
 
-    # Prepare and save train dataset
-    train_data = preprocessed_data[preprocessed_data['date'] >= '2014-01-30']
+    # Get last year that indicates the train-test split
+    last_day = new_data['date'].iat[-1]
+    last_day = datetime.strptime(last_day, "%Y-%m-%d")
+    last_year = datetime.strftime(datetime(last_day.year - 1, last_day.month, last_day.day), "%Y-%m-%d")
+
+    # Prepare and save train and test dataset
+    train_data = preprocessed_data[preprocessed_data['date'] < last_year]
     train_set = train_data.set_index('date')
     train_set.to_csv(train_path)
+
+    # Prepare and save train and test dataset
+    test_data = preprocessed_data[preprocessed_data['date'] >= last_year]
+    test_set = test_data.set_index('date')
+    test_set.to_csv(test_path)
 
 
 with DAG(
@@ -85,14 +96,15 @@ with DAG(
         }
     )
 
-    preprocess_data_task = PythonOperator(
+    preprocess_split_data_task = PythonOperator(
         task_id='preprocess_data',
-        python_callable=preprocess_data,
+        python_callable=preprocess_split_data,
         op_kwargs={
             'data_path': './shared_volume/extracted.csv',
-            'pre_data_path': './shared_volume/preprocessed_data.csv',
-            'train_path': './shared_volume/train_data.csv'
+            'pre_data_path': './shared_volume/preprocessed_data.csv.csv',
+            'train_path': './shared_volume/train_data.csv',
+            'test_path': './shared_volume/test_data.csv'
         }
     )
 
-    add_data_task >> preprocess_data_task
+    add_data_task >> preprocess_split_data_task

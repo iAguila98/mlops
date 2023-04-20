@@ -2,3 +2,4 @@ Pillow
 streamlit
 pandas
 plotly
+chardet

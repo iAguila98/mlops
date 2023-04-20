@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
-from category_encoders import TargetEncoder
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.pipeline import Pipeline
 
+from category_encoders import TargetEncoder
+from datetime import datetime
+from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, TransformerMixin
 
 class FillSellPrice(BaseEstimator, TransformerMixin):
     """
@@ -64,12 +65,17 @@ class CategoricalEncoder(BaseEstimator, TransformerMixin):
                             'snap_CA', 'snap_TX', 'snap_WI'])
 
         # Apply Target Encoding. The training set will only have information in its dates. The same for the test set.
-        transformed_train = self.tr_enc.fit_transform(X[X['date'] >= '2014-01-30'][self.tr_attr],
-                                                      X[X['date'] >= '2014-01-30']['sales'],
+
+        last_day = X['date'].iat[-1]
+        last_day = datetime.strptime(last_day, "%Y-%m-%d")
+        last_year = datetime.strftime(datetime(last_day.year - 1, last_day.month, last_day.day), "%Y-%m-%d")
+
+        transformed_train = self.tr_enc.fit_transform(X[X['date'] < last_year][self.tr_attr],
+                                                      X[X['date'] < last_year]['sales'],
                                                       smoothing=1.0)
 
-        transformed_test = self.tr_enc.fit_transform(X[X['date'] < '2014-01-30'][self.tr_attr],
-                                                     X[X['date'] < '2014-01-30']['sales'],
+        transformed_test = self.tr_enc.fit_transform(X[X['date'] >= last_year][self.tr_attr],
+                                                     X[X['date'] >= last_year]['sales'],
                                                      smoothing=1.0)
 
         transformed_data = pd.concat([transformed_train, transformed_test], ignore_index=True)
