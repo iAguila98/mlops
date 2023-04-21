@@ -1,6 +1,6 @@
 import shutil
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 def create_dag(target_path, dag_id, hyperparameters):
@@ -27,19 +27,21 @@ def create_dag(target_path, dag_id, hyperparameters):
     # Define template
     dag_template_file = 'MLOps_Airflow/shared_volume/scripts/dag_template.py'
 
-    # Hyperparameters according to the type of model
     model_type = dag_id.split('_')[0]
     if model_type == 'linear':
         fit_intercept = str(hyperparameters[0])
         n_jobs = str(hyperparameters[1])
+        max_depth = 'np.nan'
+        max_leaf_nodes = 'np.nan'
+        max_features = 'np.nan'
+
     elif model_type == 'decision':
+        fit_intercept = 'np.nan'
+        n_jobs = 'np.nan'
         max_depth = str(hyperparameters[2])
         max_leaf_nodes = str(hyperparameters[3])
         max_features = str(hyperparameters[4])
 
-
-    print(max_depth, max_leaf_nodes, max_features)
-    '''
     # Copy the template into the target path
     shutil.copyfile(dag_template_file, target_path)
 
@@ -47,6 +49,9 @@ def create_dag(target_path, dag_id, hyperparameters):
     replacements = {'dag_id_model': "'"+dag_id+"'",
                     'fit_intercept_model': fit_intercept,
                     'n_jobs_model': n_jobs,
+                    'max_depth_model': max_depth,
+                    'max_leaf_nodes_model': max_leaf_nodes,
+                    'max_features_model': max_features,
                     'start_date_change': start_date}
 
     lines = []
@@ -58,5 +63,5 @@ def create_dag(target_path, dag_id, hyperparameters):
     with open(target_path, 'w') as outfile:
         for line in lines:
             outfile.write(line)
-    '''
+
 

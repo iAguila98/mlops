@@ -39,7 +39,6 @@ if not os.path.exists(new_filename):
     # We create the dag (this will be executed automatically the webserver detects it)
     create_dag(new_filename, dag_id, hyperparameters)
 
-    '''
     # Create an empty json where we will save the dag information
     df = pd.DataFrame()
     df.to_json('MLOps_Airflow/shared_volume/dag_info.json')
@@ -98,4 +97,4 @@ else:
     # Now we can trigger the DAG manually and save the dag run information
     file_ = open('MLOps_Airflow/shared_volume/dag_run_info.json', 'w')
     subprocess.Popen(['MLOps_Airflow/shared_volume/trigger_train.sh', dag_id], stdout=file_)
-'''
+

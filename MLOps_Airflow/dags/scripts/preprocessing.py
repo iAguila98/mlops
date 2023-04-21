@@ -6,6 +6,7 @@ from datetime import datetime
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 
+
 class FillSellPrice(BaseEstimator, TransformerMixin):
     """
         Fill sell_price Nan using backward fill without taking into account special event prices.

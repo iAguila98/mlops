@@ -1,5 +1,6 @@
 import csv
 import logging
+import numpy as np
 import pickle
 
 from airflow import DAG
@@ -9,13 +10,14 @@ from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.utils.db import provide_session
 from datetime import datetime
 from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
 
 from scripts.train_script import train
 from scripts.validation_script import validation
 
 
 @provide_session
-def _get_execution_date_of_dag_datasets(exec_date, session=None,  **kwargs):
+def _get_execution_date_of_dag_datasets(exec_date, session=None, **kwargs):
     dag_datasets_last_run = get_last_dagrun(
         'dataset_creation', session)
     logging.info('Last dataset run: ', dag_datasets_last_run.execution_date)
@@ -41,11 +43,18 @@ def train_model(eval_path, train_path, results_path, models_path):
     New instance generated in the historical dataset.
     New file of the trained model saved in the model directory. (.sav)
     """
-
-    # In case we have different types of models, a condition is necessary
+    # Define the model according to the model type selected by the user
     model_name = dag_id_model
-    if model_name.split('_')[0] == 'linear':
+    model_type = model_name.split('_')[0]
+
+    # For the linear regression model
+    if model_type == 'linear':
         model = LinearRegression(fit_intercept=fit_intercept_model, n_jobs=n_jobs_model)
+
+    # For the decision tree regressor model
+    elif model_type == 'decision':
+        model = DecisionTreeRegressor(max_depth=max_depth_model, max_leaf_nodes=max_leaf_nodes_model,
+                                      max_features=max_features_model)
     else:
         logging.info('Model name not implemented.')
         raise Exception('Model name not implemented.')
@@ -59,11 +68,14 @@ def train_model(eval_path, train_path, results_path, models_path):
     # Write the row in the results_path csv
     with open(results_path, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([dag_id_model,  # Model name
+        writer.writerow([model_name,  # Model name
                          results['val_date'],
                          train_date,
                          fit_intercept_model,
                          n_jobs_model,
+                         max_depth_model,
+                         max_leaf_nodes_model,
+                         max_features_model,
                          results['mae'],
                          results['wmape'],
                          results['rmse'],
@@ -71,7 +83,7 @@ def train_model(eval_path, train_path, results_path, models_path):
                          False])
 
     # Now we save the trained model with his correspondent name
-    pickle.dump(model, open(models_path + dag_id_model + '.sav', 'wb'))
+    pickle.dump(model, open(models_path + model_name + '.sav', 'wb'))
 
 
 default_args = {

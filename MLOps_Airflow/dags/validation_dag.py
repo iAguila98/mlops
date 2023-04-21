@@ -62,7 +62,6 @@ def evaluate(models_path, val_path, results_path):
         train_date = last_train_date[model_name]
         results['train_date'] = train_date
         results['train_requested'] = False
-        logging.info(results)
 
         with open(results_path, 'a') as f_object:
             dictwriter_object = DictWriter(f_object, fieldnames=historic_df.columns)

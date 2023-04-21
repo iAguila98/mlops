@@ -1,5 +1,7 @@
 import logging
 
+import numpy as np
+
 
 def get_parameters(model_name):
     """
@@ -12,16 +14,37 @@ def get_parameters(model_name):
     -------
     Dictionary containing the hyperparameters of the model.
     """
-    split_name = model_name.split('_')
-    if split_name[0] == 'linear':
-        n_jobs = split_name[2]
-        if split_name[1] == 'T':
+
+    # Initialize all hyperparameters from all model types to nan
+    fit_intercept = np.nan
+    n_jobs = np.nan
+    max_depth = np.nan
+    max_leaf_nodes = np.nan
+    max_features = np.nan
+
+    # Get the model type selected by the user
+    model_type = model_name.split('_')
+
+    # Save hyperparameters from linear_regression
+    if model_type[0] == 'linear':
+        n_jobs = model_type[2]
+        if model_type[1] == 'T':
             fit_intercept = True
-        if split_name[1] == 'F':
+        elif model_type[1] == 'F':
             fit_intercept = False
+
+    # Save hyperparameters from decision_tree
+    elif model_type[0] == 'decision':
+        max_depth = model_type[1]
+        if model_type[2] == 'N':
+            max_leaf_nodes = None
         else:
-            logging.info('Model name not supported')
-    else:
-        logging.info('Model name not supported')
-    parameters = {'fit_intercept': fit_intercept, 'n_jobs': n_jobs}
+            max_leaf_nodes = model_type[2]
+        if model_type[3] == 'N':
+            max_features = None
+        else:
+            max_features = model_type[3]
+
+    parameters = {'fit_intercept': fit_intercept, 'n_jobs': n_jobs, 'max_depth': max_depth,
+                  'max_leaf_nodes': max_leaf_nodes, 'max_features': max_features}
     return parameters

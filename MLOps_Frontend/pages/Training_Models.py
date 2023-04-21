@@ -105,11 +105,15 @@ else:
 if 'dag_run_id' not in st.session_state:
     st.session_state.dag_run_id = ''
 
+# Initialize attempts_error argument used to notify about waiting error
+if 'attempts_error' not in st.session_state:
+    st.session_state.attempts_error = None
+
 # Initialize the state variable used to define the while loop
 state = ''
 
 # Define the 'launch training' button and what it should execute
-if st.button('Launch Training'):
+if st.button('Launch Training') and st.session_state.attempts_error is None:
 
     # Inform the user if the model already exists or not
     if os.path.exists(model_path):
@@ -128,13 +132,12 @@ if st.button('Launch Training'):
     p = subprocess.Popen(cmd)
     p.wait()  # Waits until the subprocess is finished
 
-    '''
     # Wait two seconds to ensure that the json has been created in the subprocess
     time.sleep(2)
 
     # Try read the json file. If it does not exist, it means that it reached the maximum number of attempts
     try:
-        att_error = None
+        st.session_state.attempts_error = None
         # Read and save the dag_run_id in the json file
         f = open('MLOps_Airflow/shared_volume/dag_run_info.json')
         data = json.load(f)
@@ -142,10 +145,10 @@ if st.button('Launch Training'):
         # Delete the json that contains the dag run id, used to check the status of the run
         os.remove('MLOps_Airflow/shared_volume/dag_run_info.json')
     except Exception as e:
-        att_error = e
+        st.session_state.attempts_error = e
 
     # If the maximum number of attempts to detect the new DAG is not reached, then executes the following code
-    if not att_error:
+    if st.session_state.attempts_error is None:
 
         # St.empty() allows to overwrite messages that are shown to the user in streamlit
         with st.empty():
@@ -197,5 +200,5 @@ if st.button('Launch Training'):
                    , icon="⚠️")
         st.warning('You still cannot order the training of the new model, please wait a few minutes and '
                    'try again.', icon="⚠️")
-    '''
+
 
