@@ -1,0 +1,2 @@
+model,val_date,train_date,fit_intercept,n_jobs,mae,wmape,rmse,tweedie,train_requested
+linear_T_-1,2023-04-21 11:15:57.277650+00:00,2023-04-21 11:15:56.042546+00:00,True,-1,1.098,0.93,1.933,3.737,False

@@ -11,12 +11,12 @@ from file_creation import create_dag
 logging.basicConfig(level=logging.INFO)
 
 # Reading the historical validation dataset
-data = pd.read_csv('MLOps_Airflow/shared_volume/historical_validation.csv')
+data = pd.read_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
 filtered_data = data[data['train_requested']==True]
 
 # We have to delete the train_requested=TRUE row after reading it.
 base_df = data[data['train_requested']!=True].set_index('model')
-base_df.to_csv('MLOps_Airflow/shared_volume/historical_validation.csv')
+base_df.to_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
 
 # Setting the parameters of the create_dag function
 dag_id = filtered_data.iloc[0]['model']

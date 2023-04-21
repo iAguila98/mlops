@@ -30,7 +30,7 @@ st.image(logo_url, width=500)
 st.title('Training models')
 
 st.write('View best performing models and train new ones selecting model type and hyperparameters.')
-historical_path = 'MLOps_Airflow/shared_volume/historical_validation.csv'
+historical_path = 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
 
 
 def load_data(path):
@@ -93,7 +93,7 @@ if model_type == 'Linear regression':
             dictwriter_object.writerow(training_dict)
 
         # Execute the dag_generation code to create the dag file
-        cmd = ['python', 'MLOps_Airflow/shared_volume/dag_generation.py']
+        cmd = ['python', 'MLOps_Airflow/shared_volume/scripts/dag_generation.py']
         p = subprocess.Popen(cmd)
         p.wait()  # Waits until the subprocess is finished
 

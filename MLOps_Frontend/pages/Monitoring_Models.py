@@ -35,7 +35,7 @@ st.write('Monitor different trained models on the M5 preprocessed dataset. Check
 
 # Visualize historical graph validation
 st.subheader('Historical Graph')
-historical = pd.read_csv('MLOps_Airflow/shared_volume/historical_validation.csv')
+historical = pd.read_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
 models_path = 'MLOps_Airflow/shared_volume/models'
 column_metrics = ['mae', 'wmape', 'rmse', 'tweedie']
 tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
@@ -78,23 +78,31 @@ if button:
     len_csv = len(historical)
     model_num = len(os.listdir(models_path))
 
-    # Make a manual trigger of the DAG that validates the models (through a shell script)
-    subprocess.call('MLOps_Frontend/trigger_validation.sh')
+    # When there are models trained, execute the following code
+    if initial_len != 0:
 
-    st.info('The evaluation process has been activated.', icon="ℹ️")
+        # Make a manual trigger of the DAG that validates the models (through a shell script)
+        subprocess.call('MLOps_Frontend/trigger_validation.sh')
 
-    # Wait until the DAG is done, specifically until a new row is added in the historical dataset
-    while len_csv - initial_len != model_num:
-        time.sleep(2)
-        historical = pd.read_csv('MLOps_Airflow/shared_volume/historical_validation.csv')
-        len_csv = len(historical)
+        st.info('The evaluation process has been activated.', icon="ℹ️")
 
-    # Read the new instance created with the activation of the button
-    st.subheader('New instance generated')
-    st.table(historical.drop('train_requested', axis=1).tail(model_num))
+        # Wait until the DAG is done, specifically until a new row is added in the historical dataset
+        while len_csv - initial_len != model_num:
+            time.sleep(2)
+            historical = pd.read_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
+            len_csv = len(historical)
 
-    # Give an explanation to the users about the functionality of the buttons
-    st.success('Click REFRESH to add this instance into the graph.', icon="✅")
-    st.info('If you click VALIDATE again, the last instance will be automatically added to the graph.', icon="ℹ️")
+        # Read the new instance created with the activation of the button
+        st.subheader('New instance generated')
+        st.table(historical.drop('train_requested', axis=1).tail(model_num))
+
+        # Give an explanation to the users about the functionality of the buttons
+        st.success('Click REFRESH to add this instance into the graph.', icon="✅")
+        st.info('If you click VALIDATE again, the last instance will be automatically added to the graph.', icon="ℹ️")
+
+    # When there are no models trained yet, notify the user
+    else:
+        st.warning('There is no trained model. You must train a model on the Training Models page.', icon="⚠️")
+
 
 

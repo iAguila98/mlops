@@ -89,10 +89,10 @@ with DAG(
         task_id='add_data',
         python_callable=add_data,
         op_kwargs={
-            'data_path': './shared_volume/extracted.csv',
-            'data_batch_path': './shared_volume/batch_data.csv',
-            'events_dict_path': './shared_volume/events_dictionary.pkl',
-            'snaps_dict_path': './shared_volume/snaps_dictionary.pkl'
+            'data_path': './shared_volume/data/extracted.csv',
+            'data_batch_path': './shared_volume/data/batch_data.csv',
+            'events_dict_path': './shared_volume/data/events_dictionary.pkl',
+            'snaps_dict_path': './shared_volume/data/snaps_dictionary.pkl'
         }
     )
 
@@ -100,10 +100,10 @@ with DAG(
         task_id='preprocess_data',
         python_callable=preprocess_split_data,
         op_kwargs={
-            'data_path': './shared_volume/extracted.csv',
-            'pre_data_path': './shared_volume/preprocessed_data.csv.csv',
-            'train_path': './shared_volume/train_data.csv',
-            'test_path': './shared_volume/test_data.csv'
+            'data_path': './shared_volume/data/extracted.csv',
+            'pre_data_path': './shared_volume/data/preprocessed_data.csv',
+            'train_path': './shared_volume/data/train_data.csv',
+            'test_path': './shared_volume/data/test_data.csv'
         }
     )
 

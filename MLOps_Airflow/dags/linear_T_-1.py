@@ -43,9 +43,9 @@ def train_model(eval_path, train_path, results_path, models_path):
     """
 
     # In case we have different types of models, a condition is necessary
-    model_name = dag_id_model
+    model_name = 'linear_T_-1'
     if model_name.split('_')[0] == 'linear':
-        model = LinearRegression(fit_intercept=fit_intercept_model, n_jobs=n_jobs_model)
+        model = LinearRegression(fit_intercept=True, n_jobs=-1)
     else:
         logging.info('Model name not implemented.')
         raise Exception('Model name not implemented.')
@@ -59,11 +59,11 @@ def train_model(eval_path, train_path, results_path, models_path):
     # Write the row in the results_path csv
     with open(results_path, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([dag_id_model,  # Model name
+        writer.writerow(['linear_T_-1',  # Model name
                          results['val_date'],
                          train_date,
-                         fit_intercept_model,
-                         n_jobs_model,
+                         True,
+                         -1,
                          results['mae'],
                          results['wmape'],
                          results['rmse'],
@@ -71,18 +71,18 @@ def train_model(eval_path, train_path, results_path, models_path):
                          False])
 
     # Now we save the trained model with his correspondent name
-    pickle.dump(model, open(models_path + dag_id_model + '.sav', 'wb'))
+    pickle.dump(model, open(models_path + 'linear_T_-1' + '.sav', 'wb'))
 
 
 default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id=dag_id_model,
+dag = DAG(dag_id='linear_T_-1',
           description='DAG that will get triggered monthly to train the correspondent model.',
           schedule='0 0 1 * *',
           default_args=default_args,
-          start_date=start_date_change,
+          start_date=datetime(2023, 4, 1),
           catchup=False)
 
 with dag:
@@ -98,9 +98,9 @@ with dag:
         task_id='train_model',
         python_callable=train_model,
         op_kwargs={
-            'eval_path': './shared_volume/test_data.csv',
-            'train_path': './shared_volume/train_data.csv',
-            'results_path': './shared_volume/historical_validation.csv',
+            'eval_path': './shared_volume/data/test_data.csv',
+            'train_path': './shared_volume/data/train_data.csv',
+            'results_path': './shared_volume/data/historical_validation.csv',
             'models_path': './shared_volume/models/'
         }
     )

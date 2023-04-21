@@ -25,7 +25,7 @@ def create_dag(target_path, dag_id, hyperparameters):
     start_date = 'datetime(' + str(first).replace('-0', ', ') + ')'
 
     # Define template
-    dag_template_file = 'MLOps_Airflow/shared_volume/dag_template.py'
+    dag_template_file = 'MLOps_Airflow/shared_volume/scripts/dag_template.py'
 
     # Linear model hyperparameters --> We should add a condition if we work with more models
     fit_intercept = str(hyperparameters[0])

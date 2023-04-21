@@ -2,7 +2,7 @@ import os
 import time
 import unittest
 
-from MLOps_Airflow.shared_volume.file_creation import create_dag
+from MLOps_Airflow.shared_volume.scripts.file_creation import create_dag
 
 
 class TestDagCreation(unittest.TestCase):

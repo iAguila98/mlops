@@ -12,9 +12,9 @@ MLOps_Airflow/utils/initial_test_data.csv
 MLOps_Airflow/utils/initial_extracted.csv
 MLOps_Airflow/utils/initial_preprocessed_data.csv
 
-MLOps_Airflow/shared_volume/test_data.csv
-MLOps_Airflow/shared_volume/train_data.csv
-MLOps_Airflow/shared_volume/extracted.csv
-MLOps_Airflow/shared_volume/preprocessed_data.csv
+MLOps_Airflow/shared_volume/data/test_data.csv
+MLOps_Airflow/shared_volume/data/train_data.csv
+MLOps_Airflow/shared_volume/data/extracted.csv
+MLOps_Airflow/shared_volume/data/preprocessed_data.csv
 
 MLOps_Frontend/run_status.json

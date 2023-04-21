@@ -90,8 +90,8 @@ with DAG(dag_id='test_models',
         python_callable=evaluate,
         op_kwargs={
             'models_path': './shared_volume/models/',
-            'val_path': './shared_volume/test_data.csv',
-            'results_path': './shared_volume/historical_validation.csv'
+            'val_path': './shared_volume/data/test_data.csv',
+            'results_path': './shared_volume/data/historical_validation.csv'
         }
     )
 
