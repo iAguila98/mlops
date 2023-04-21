@@ -11,12 +11,13 @@ from file_creation import create_dag
 logging.basicConfig(level=logging.INFO)
 
 # Reading the historical validation dataset
-data = pd.read_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
+historical_path = 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
+data = pd.read_csv(historical_path)
 filtered_data = data[data['train_requested']==True]
 
 # We have to delete the train_requested=TRUE row after reading it.
 base_df = data[data['train_requested']!=True].set_index('model')
-base_df.to_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
+base_df.to_csv(historical_path)
 
 # Setting the parameters of the create_dag function
 dag_id = filtered_data.iloc[0]['model']
@@ -28,8 +29,6 @@ new_filename = 'MLOps_Airflow/dags/' + dag_id + '.py'
 if not os.path.exists(new_filename):
     logging.info('Model not detected, creating a new model...')
 
-    # ESTO DEBE CAMBIARSE SI SE AÑADEN OTROS MODELOS Y OTROS HIPERPARAMETROS
-
     # Reading the hyperparameters of the model
     hyperparameters = []
     initial_hyperparameter = 3  # First hyperparameter is column index = 3 in the historical dataset
@@ -40,6 +39,7 @@ if not os.path.exists(new_filename):
     # We create the dag (this will be executed automatically the webserver detects it)
     create_dag(new_filename, dag_id, hyperparameters)
 
+    '''
     # Create an empty json where we will save the dag information
     df = pd.DataFrame()
     df.to_json('MLOps_Airflow/shared_volume/dag_info.json')
@@ -98,4 +98,4 @@ else:
     # Now we can trigger the DAG manually and save the dag run information
     file_ = open('MLOps_Airflow/shared_volume/dag_run_info.json', 'w')
     subprocess.Popen(['MLOps_Airflow/shared_volume/trigger_train.sh', dag_id], stdout=file_)
-
+'''
