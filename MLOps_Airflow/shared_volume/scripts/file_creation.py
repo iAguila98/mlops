@@ -27,31 +27,50 @@ def create_dag(target_path, dag_id, hyperparameters):
     # Define template
     dag_template_file = 'MLOps_Airflow/shared_volume/scripts/dag_template.py'
 
-    model_type = dag_id.split('_')[0]
-    if model_type == 'linear':
-        fit_intercept = str(hyperparameters[0])
-        n_jobs = str(hyperparameters[1])
-        max_depth = 'np.nan'
-        max_leaf_nodes = 'np.nan'
-        max_features = 'np.nan'
+    # Initialize all possible hyperparameters with 'np.nan' string
+    all_hyper = []
+    for i in range(0, len(hyperparameters)):
+        all_hyper.append('np.nan')
 
+    # Get the type of model selected by the user
+    model_type = dag_id.split('_')[0]
+
+    # If it is a linear regressor model, get its hyperparameters
+    if model_type == 'linear':
+        all_hyper[0] = str(hyperparameters[0])
+        all_hyper[1] = str(hyperparameters[1])
+
+    # If it is a decision tree model, get its hyperparameters
     elif model_type == 'decision':
-        fit_intercept = 'np.nan'
-        n_jobs = 'np.nan'
-        max_depth = str(hyperparameters[2])
-        max_leaf_nodes = str(hyperparameters[3])
-        max_features = str(hyperparameters[4])
+        all_hyper[2] = str(hyperparameters[2])
+        all_hyper[3] = str(hyperparameters[3])
+        all_hyper[4] = str(hyperparameters[4])
+
+    # If it is a gradient boosting model, get its hyperparameters
+    elif model_type == 'gradient':
+        all_hyper[5] = str(hyperparameters[5])
+        all_hyper[6] = str(hyperparameters[6])
+        all_hyper[7] = str(hyperparameters[7])
+        all_hyper[8] = str(hyperparameters[8])
+
+    # There are no more type models implemented
+    else:
+        raise Exception('Model name not implemented.')
 
     # Copy the template into the target path
     shutil.copyfile(dag_template_file, target_path)
 
     # Replace the variables in the created file
     replacements = {'dag_id_model': "'"+dag_id+"'",
-                    'fit_intercept_model': fit_intercept,
-                    'n_jobs_model': n_jobs,
-                    'max_depth_model': max_depth,
-                    'max_leaf_nodes_model': max_leaf_nodes,
-                    'max_features_model': max_features,
+                    'fit_intercept_model': all_hyper[0],
+                    'n_jobs_model': all_hyper[1],
+                    'd_max_depth_model': all_hyper[2],
+                    'max_leaf_nodes_model': all_hyper[3],
+                    'd_max_features_model': all_hyper[4],
+                    'learning_rate_model': all_hyper[5],
+                    'n_estimators_model': all_hyper[6],
+                    'g_max_depth_model': all_hyper[7],
+                    'g_max_features_model': all_hyper[8],
                     'start_date_change': start_date}
 
     lines = []

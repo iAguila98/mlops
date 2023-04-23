@@ -47,22 +47,28 @@ def evaluate(models_path, val_path, results_path):
     - hyperparameters: values of the hyperparameters according to the model.
     - mae, wmape, rmse, tweedie: validation metrics. (float)
     """
+    # From the historical_validation.csv, get the date of the last training of each model
     historic_df = pd.read_csv(results_path)
     last_train_date_df = historic_df.sort_values('train_date').groupby('model').tail(1)
     last_train_date = {}
     for index, row in last_train_date_df.iterrows():
         last_train_date[row['model']] = row['train_date']
 
+    # Read each model that has been previously created and trained
     for model_file in os.listdir(models_path):
         with open(models_path + model_file, 'rb') as file:
             model = pickle.load(file)
 
+        # Evaluate the model and get the correspondent results
         model_name = model_file.split('.')[0]
         results = validation(model, model_name, val_path)
+
+        # Get additional column values to write historical_validation.csv
         train_date = last_train_date[model_name]
         results['train_date'] = train_date
         results['train_requested'] = False
 
+        # Write the results in the historical_validation.csv
         with open(results_path, 'a') as f_object:
             dictwriter_object = DictWriter(f_object, fieldnames=historic_df.columns)
             dictwriter_object.writerow(results)

@@ -45,7 +45,7 @@ def train_model(eval_path, train_path, results_path, models_path):
     New file of the trained model saved in the model directory. (.sav)
     """
     # Define the model according to the model type selected by the user
-    model_name = dag_id_model
+    model_name = 'gradient_00001_1_1_N'
     model_type = model_name.split('_')[0]
 
     # Initialize the possible string values related to the max_features hyperparameter
@@ -55,17 +55,17 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the linear regression model
     if model_type == 'linear':
-        model = LinearRegression(fit_intercept=fit_intercept_model, n_jobs=n_jobs_model)
+        model = LinearRegression(fit_intercept=np.nan, n_jobs=np.nan)
 
     # For the decision tree regressor model
     elif model_type == 'decision':
-        model = DecisionTreeRegressor(max_depth=d_max_depth_model, max_leaf_nodes=max_leaf_nodes_model,
-                                      max_features=d_max_features_model)
+        model = DecisionTreeRegressor(max_depth=np.nan, max_leaf_nodes=np.nan,
+                                      max_features=np.nan)
 
     # For the gradient boosting regressor model
     elif model_type == 'gradient':
-        model = GradientBoostingRegressor(learning_rate=learning_rate_model, n_estimators=n_estimators_model,
-                                          max_depth=g_max_depth_model, max_features=g_max_features_model)
+        model = GradientBoostingRegressor(learning_rate=0.0001, n_estimators=1,
+                                          max_depth=1, max_features=None)
 
     # There are no more type models implemented
     else:
@@ -81,15 +81,15 @@ def train_model(eval_path, train_path, results_path, models_path):
     row = [model_name,
            results['val_date'],
            train_date,
-           fit_intercept_model,
-           n_jobs_model,
-           d_max_depth_model,
-           max_leaf_nodes_model,
-           d_max_features_model,
-           learning_rate_model,
-           n_estimators_model,
-           g_max_depth_model,
-           g_max_features_model,
+           np.nan,
+           np.nan,
+           np.nan,
+           np.nan,
+           np.nan,
+           0.0001,
+           1,
+           1,
+           None,
            results['mae'],
            results['wmape'],
            results['rmse'],
@@ -115,11 +115,11 @@ default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id=dag_id_model,
+dag = DAG(dag_id='gradient_00001_1_1_N',
           description='DAG that will get triggered monthly to train the correspondent model.',
           schedule='0 0 1 * *',
           default_args=default_args,
-          start_date=start_date_change,
+          start_date=datetime(2023, 4, 1),
           catchup=False)
 
 with dag:
