@@ -1,9 +1,30 @@
+import json
 import os
 import pandas as pd
 import plotly.express as px
 import subprocess
 import streamlit as st
 import time
+
+
+def plot_historical(dataset, metrics, graphs):
+    """
+    From the dataset of historical validations of the models, a graph is generated for each of the calculated metrics.
+    The graph shows each trained model performance.
+
+    Parameters
+    ----------
+    dataset: historical validation dataset. It stores the trained models performances over time.
+    metrics: metrics computed in the validation.
+    graphs: it corresponds to the metric tabs from streamlit. Each tab shows the graph that corresponds to the metric.
+
+    Returns
+    -------
+    The plotted historical validation graphs for each metric.
+    """
+    for i, tab in enumerate(graphs):
+        fig = px.line(dataset, x='val_date', y=metrics[i], color="model", markers=True)
+        tab.plotly_chart(fig, use_container_width=True)
 
 
 # Web configuration
@@ -40,69 +61,98 @@ models_path = 'MLOps_Airflow/shared_volume/models'
 column_metrics = ['mae', 'wmape', 'rmse', 'tweedie']
 tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
 
-
-def plot_historical(dataset, metrics, graphs):
-    """
-    From the dataset of historical validations of the models, a graph is generated for each of the calculated metrics.
-    The graph shows each trained model performance.
-
-    Parameters
-    ----------
-    dataset: historical validation dataset. It stores the trained models performances over time.
-    metrics: metrics computed in the validation.
-    graphs: it corresponds to the metric tabs from streamlit. Each tab shows the graph that corresponds to the metric.
-
-    Returns
-    -------
-    The plotted historical validation graphs for each metric.
-    """
-    for i, tab in enumerate(graphs):
-        fig = px.line(dataset, x='val_date', y=metrics[i], color="model", markers=True)
-        tab.plotly_chart(fig, use_container_width=True)
-
+# Plot historical graphic
+plot_historical(historical, column_metrics, tabs)
 
 # Define two columns for the validate button and the refresh button
-cols = st.columns(2)
-# Button used to refresh the graphic with the new validations
+cols = st.columns(5)
 with cols[0]:
-    st.button("REFRESH", on_click=plot_historical(historical, column_metrics, tabs))
-
-# Button used to manually trigger the validations of the trained models
+    refresh_button = st.button('REFRESH')
 with cols[1]:
-    button = st.button('VALIDATE')
+    pass
+with cols[2]:
+    evaluate_button = st.button('VALIDATE')
+with cols[3]:
+    pass
+with cols[4]:
+    pass
 
-# Activates the validation button
-if button:
+# Initialize dug_run_id argument used to check the dag run status
+if 'validation_run_id' not in st.session_state:
+    st.session_state.validation_run_id = ''
+
+# Initialize the state variable used to define the while loop that checks the validation run status
+state = ''
+
+# Activates the evaluation button
+if evaluate_button:
+
     # Initialize while loop parameters
-    initial_len = len(historical)
-    len_csv = len(historical)
     model_num = len(os.listdir(models_path))
 
     # When there are models trained, execute the following code
-    if initial_len != 0:
+    if model_num != 0:
 
         # Make a manual trigger of the DAG that validates the models (through a shell script)
-        subprocess.call('MLOps_Frontend/trigger_validation.sh')
+        file_ = open('MLOps_Airflow/shared_volume/coms/validation_run_info.json', 'w')
+        p = subprocess.Popen('MLOps_Airflow/shared_volume/coms/trigger_validation.sh', stdout=file_)
+        p.wait()  # Waits until the subprocess is finished
 
-        st.info('The evaluation process has been activated.', icon="ℹ️")
+        # Read the dag_run_id from the json created when the trigger is performed
+        f = open('MLOps_Airflow/shared_volume/coms/validation_run_info.json')
+        data = json.load(f)
+        st.session_state.validation_run_id = data['dag_run_id']
 
-        # Wait until the DAG is done, specifically until a new row is added in the historical dataset
-        while len_csv - initial_len != model_num:
-            time.sleep(2)
-            historical = pd.read_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
-            len_csv = len(historical)
+        # Delete the json that contains the dag run id, used to check the status of the run
+        os.remove('MLOps_Airflow/shared_volume/coms/validation_run_info.json')
 
-        # Read the new instance created with the activation of the button
-        st.subheader('New instance generated')
-        st.table(historical.drop('train_requested', axis=1).tail(model_num))
+        # St.empty() allows to overwrite messages that are shown to the user in streamlit
+        with st.empty():
 
-        # Give an explanation to the users about the functionality of the buttons
-        st.success('Click REFRESH to add this instance into the graph.', icon="✅")
-        st.info('If you click VALIDATE again, the last instance will be automatically added to the graph.', icon="ℹ️")
+            # Inform that the trigger has been successfully ordered
+            st.info('The validation of the models has been successfully ordered.', icon="ℹ️")
+            time.sleep(3)  # Give time to the user to read the message
+
+            # As long as the process has not been completed, whether successfully or not, keep in the loop.
+            while state != 'success' and state != 'failed':
+
+                # Initialize argument used in the request to REST API
+                dag_run_id = st.session_state.validation_run_id
+
+                # Execute the request which returns the info about the DAG run and save it
+                file_ = open('MLOps_Airflow/shared_volume/coms/validation_run_status.json', 'w')
+                p = subprocess.Popen(['MLOps_Airflow/shared_volume/coms/check_validation_run_status.sh', dag_run_id],
+                                     stdout=file_)
+                p.wait()  # Waits until the subprocess is finished
+
+                # Read the status from the DAG run info extracted
+                f = open('MLOps_Airflow/shared_volume/coms/validation_run_status.json')
+                data = json.load(f)
+                state = data['state']
+
+                # Conditions to show messages to the user depending on the DAG run status
+                if state == 'success':
+                    st.success('The validation is completed.', icon="✅")
+                elif state == 'failed':
+                    st.error('The validation has failed.', icon="🚨")
+                elif state == 'running':
+                    st.info('The validation is being performed.', icon="ℹ️")
+                elif state == 'queued':
+                    st.info('The validation is in queue.', icon="ℹ️")
+                else:
+                    st.info('Status not expected. Please check the status in the Airflow Webserver: '
+                            'http://localhost:8080/', icon="ℹ️")
+
+                # Wait 2 seconds before repeating the iteration again
+                time.sleep(2)
+
+            # Delete the run_status.json when the validation is finished
+            os.remove('MLOps_Airflow/shared_volume/coms/validation_run_status.json')
 
     # When there are no models trained yet, notify the user
     else:
         st.warning('There is no trained model. You must train a model on the Training Models page.', icon="⚠️")
 
-
-
+# Refresh streamlit page
+if refresh_button:
+    st.empty()

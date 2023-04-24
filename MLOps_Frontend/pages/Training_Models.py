@@ -8,6 +8,25 @@ import streamlit as st
 
 from csv import DictWriter
 
+
+def get_models_table(h_data):
+    """
+
+    Parameters
+    ----------
+    h_data
+
+    Returns
+    -------
+
+    """
+    rows_df = h_data.sort_values('train_date').groupby('model').tail(1)
+    rows_df = rows_df.loc[:, h_data.columns != 'train_requested']
+    rows_df.rename(columns={'model': 'Model name', 'val_date': 'Validation date', 'train_date': 'Training date'},
+                   inplace=True)
+    st.table(rows_df)
+
+
 # Web configuration
 st.set_page_config(
     layout="wide",
@@ -32,23 +51,9 @@ st.title('Training Models')
 st.write('View best performing models and train new ones selecting model type and hyperparameters.')
 historical_path = 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
 
-
-def load_data(path):
-    return pd.read_csv(path)
-
-
-def get_last_model_row(df):
-    rows_df = df.sort_values('train_date').groupby('model').tail(1)
-    rows_df = rows_df.loc[:, df.columns != 'train_requested']
-    rows_df.rename(columns={'model': 'Model name', 'val_date': 'Validation date', 'train_date': 'Training date'},
-                   inplace=True)
-    return rows_df
-
-
 # Show a table with the last registration of each model type
-h_dataset = load_data(historical_path)
-last_models_rows = get_last_model_row(h_dataset)
-st.table(last_models_rows)  # , use_container_width=True)
+historical = pd.read_csv(historical_path)
+get_models_table(historical)
 
 # Define model types selectbox in the dashboard
 model_types = ['Linear Regression', 'Decision Tree', 'Gradient Boosting']
@@ -131,14 +136,27 @@ model_path = 'MLOps_Airflow/shared_volume/models/' + model_name + '.sav'
 dag_path = 'MLOps_Airflow/dags/' + model_name + '.py'
 
 # Initialize dug_run_id argument used to check the dag run status
-if 'dag_run_id' not in st.session_state:
-    st.session_state.dag_run_id = ''
+if 'train_run_id' not in st.session_state:
+    st.session_state.train_run_id = ''
 
-# Initialize the state variable used to define the while loop
+# Initialize the state variable used to define the while loop that checks the training run status
 state = ''
 
+# Define two columns for the training button and the refresh button
+cols = st.columns(5)
+with cols[0]:
+    refresh_button = st.button('REFRESH')
+with cols[1]:
+    pass
+with cols[2]:
+    train_button = st.button('TRAIN')
+with cols[3]:
+    pass
+with cols[4]:
+    pass
+
 # Define the 'launch training' button and what it should execute
-if st.button('Launch Training'):
+if train_button:
 
     # Inform the user of different cases when training models
     if os.path.exists(dag_path) and os.path.exists(model_path):
@@ -154,7 +172,7 @@ if st.button('Launch Training'):
 
     # Write an initial row in the historical_validation dataset
     with open(historical_path, 'a') as f_object:
-        dictwriter_object = DictWriter(f_object, fieldnames=h_dataset.columns)
+        dictwriter_object = DictWriter(f_object, fieldnames=historical.columns)
         dictwriter_object.writerow(training_dict)
 
     # Execute the dag_generation code to create the dag file
@@ -169,11 +187,11 @@ if st.button('Launch Training'):
     try:
         attempts_error = False
         # Read and save the dag_run_id in the json file
-        f = open('MLOps_Airflow/shared_volume/dag_run_info.json')
+        f = open('MLOps_Airflow/shared_volume/coms/train_run_info.json')
         data = json.load(f)
-        st.session_state.dag_run_id = data['dag_run_id']
+        st.session_state.train_run_id = data['dag_run_id']
         # Delete the json that contains the dag run id, used to check the status of the run
-        os.remove('MLOps_Airflow/shared_volume/dag_run_info.json')
+        os.remove('MLOps_Airflow/shared_volume/coms/train_run_info.json')
     except Exception as e:
         attempts_error = e
 
@@ -192,15 +210,16 @@ if st.button('Launch Training'):
 
                 # Initialize arguments used in the request to REST API
                 dag_id = model_name
-                dag_run_id = st.session_state.dag_run_id
+                dag_run_id = st.session_state.train_run_id
 
                 # Execute the request which returns the info about the DAG run and save it
-                file_ = open('MLOps_Frontend/run_status.json', 'w')
-                p = subprocess.Popen(['MLOps_Frontend/check_status.sh', dag_id, dag_run_id], stdout=file_)
+                file_ = open('MLOps_Airflow/shared_volume/coms/train_run_status.json', 'w')
+                p = subprocess.Popen(['MLOps_Airflow/shared_volume/coms/check_train_run_status.sh',
+                                      dag_id, dag_run_id], stdout=file_)
                 p.wait()  # Waits until the subprocess is finished
 
                 # Read the status from the DAG run info extracted
-                f = open('MLOps_Frontend/run_status.json')
+                f = open('MLOps_Airflow/shared_volume/coms/train_run_status.json')
                 data = json.load(f)
                 state = data['state']
 
@@ -221,12 +240,15 @@ if st.button('Launch Training'):
                 time.sleep(2)
 
             # Delete the run_status.json when the training is finished
-            os.remove('MLOps_Frontend/run_status.json')
+            os.remove('MLOps_Airflow/shared_volume/coms/train_run_status.json')
 
     # Inform the user about that the process of creating a new DAG is taking too long
     else:
-        st.warning('Airflow is taking too long to detect the new model. This process is '
-                   'still running in the background.'
-                   , icon="⚠️")
+        st.warning('Airflow is taking too long to detect the new model. This process is still running in the '
+                   'background.', icon="⚠️")
         st.warning('You still cannot order the training of the new model, please wait a few minutes and '
                    'try again.', icon="⚠️")
+
+# Refresh streamlit page
+if refresh_button:
+    st.empty()
