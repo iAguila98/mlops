@@ -5,6 +5,29 @@ import plotly.express as px
 import subprocess
 import streamlit as st
 import time
+import yaml
+
+
+@st.cache_resource
+def read_config_yaml(yaml_path):
+    """
+
+    Parameters
+    ----------
+    yaml_path
+
+    Returns
+    -------
+
+    """
+    with open(yaml_path) as yaml_file:
+        config = yaml.load(yaml_file, Loader=yaml.FullLoader)
+        data_paths = config['data_paths']
+        models_paths = config['models_paths']
+        scripts_paths = config['scripts_paths']
+        coms_paths = config['coms_paths']
+
+    return data_paths, models_paths, scripts_paths, coms_paths
 
 
 def plot_historical(dataset, metrics, graphs):
@@ -26,6 +49,8 @@ def plot_historical(dataset, metrics, graphs):
         fig = px.line(dataset, x='val_date', y=metrics[i], color="model", markers=True)
         tab.plotly_chart(fig, use_container_width=True)
 
+
+########################################################################################################################
 
 # Web configuration
 st.set_page_config(
@@ -54,10 +79,15 @@ st.title('Monitoring Models trained on M5 Dataset')
 st.write('Monitor different trained models on the M5 preprocessed dataset. Check different types of '
          'analysis and metrics.')
 
+
+########################################################################################################################
+
+# Read paths from the YAML
+data_paths, models_paths, scripts_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
+
 # Visualize historical graph validation
 st.subheader('Historical Graph')
-historical = pd.read_csv('MLOps_Airflow/shared_volume/data/historical_validation.csv')
-models_path = 'MLOps_Airflow/shared_volume/models'
+historical = pd.read_csv(data_paths['historical_path'])
 column_metrics = ['mae', 'wmape', 'rmse', 'tweedie']
 tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
 
@@ -77,6 +107,9 @@ with cols[3]:
 with cols[4]:
     pass
 
+
+########################################################################################################################
+
 # Initialize dug_run_id argument used to check the dag run status
 if 'validation_run_id' not in st.session_state:
     st.session_state.validation_run_id = ''
@@ -88,23 +121,23 @@ state = ''
 if evaluate_button:
 
     # Initialize while loop parameters
-    model_num = len(os.listdir(models_path))
+    model_num = len(os.listdir(models_paths['models_repository_path']))
 
     # When there are models trained, execute the following code
     if model_num != 0:
 
         # Make a manual trigger of the DAG that validates the models (through a shell script)
-        file_ = open('MLOps_Airflow/shared_volume/coms/validation_run_info.json', 'w')
-        p = subprocess.Popen('MLOps_Airflow/shared_volume/coms/trigger_validation.sh', stdout=file_)
+        file_ = open(coms_paths['validation_run_info_path'], 'w')
+        p = subprocess.Popen(coms_paths['trigger_validation_paths'], stdout=file_)
         p.wait()  # Waits until the subprocess is finished
 
         # Read the dag_run_id from the json created when the trigger is performed
-        f = open('MLOps_Airflow/shared_volume/coms/validation_run_info.json')
+        f = open(coms_paths['validation_run_info_path'])
         data = json.load(f)
         st.session_state.validation_run_id = data['dag_run_id']
 
         # Delete the json that contains the dag run id, used to check the status of the run
-        os.remove('MLOps_Airflow/shared_volume/coms/validation_run_info.json')
+        os.remove(coms_paths['validation_run_info_path'])
 
         # St.empty() allows to overwrite messages that are shown to the user in streamlit
         with st.empty():
@@ -120,13 +153,13 @@ if evaluate_button:
                 dag_run_id = st.session_state.validation_run_id
 
                 # Execute the request which returns the info about the DAG run and save it
-                file_ = open('MLOps_Airflow/shared_volume/coms/validation_run_status.json', 'w')
-                p = subprocess.Popen(['MLOps_Airflow/shared_volume/coms/check_validation_run_status.sh', dag_run_id],
+                file_ = open(coms_paths['validation_run_status_path'], 'w')
+                p = subprocess.Popen([coms_paths['check_validation_run_status_path'], dag_run_id],
                                      stdout=file_)
                 p.wait()  # Waits until the subprocess is finished
 
                 # Read the status from the DAG run info extracted
-                f = open('MLOps_Airflow/shared_volume/coms/validation_run_status.json')
+                f = open(coms_paths['validation_run_status_path'])
                 data = json.load(f)
                 state = data['state']
 
@@ -147,7 +180,7 @@ if evaluate_button:
                 time.sleep(2)
 
             # Delete the run_status.json when the validation is finished
-            os.remove('MLOps_Airflow/shared_volume/coms/validation_run_status.json')
+            os.remove(coms_paths['validation_run_status_path'])
 
     # When there are no models trained yet, notify the user
     else:

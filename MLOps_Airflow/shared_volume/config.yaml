@@ -1,0 +1,22 @@
+data_paths:
+  historical_path: 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
+
+models_paths:
+  models_repository_path: 'MLOps_Airflow/shared_volume/models'
+
+scripts_paths:
+  dag_generation_path: 'MLOps_Airflow/shared_volume/scripts/dag_generation.py'
+
+coms_paths:
+  # Training paths
+  train_dag_info_path: 'MLOps_Airflow/shared_volume/coms/train_dag_info.json'
+  check_dag_exists: 'MLOps_Airflow/shared_volume/coms/check_dag_exists.sh'
+  trigger_train_path: 'MLOps_Airflow/shared_volume/coms/trigger_train.sh'
+  train_run_info_path: 'MLOps_Airflow/shared_volume/coms/train_run_info.json'
+  train_run_status_path: 'MLOps_Airflow/shared_volume/coms/train_run_status.json'
+  check_train_run_status_path: 'MLOps_Airflow/shared_volume/coms/check_train_run_status.sh'
+  # Validation paths
+  trigger_validation_paths: 'MLOps_Airflow/shared_volume/coms/trigger_validation.sh'
+  validation_run_info_path: 'MLOps_Airflow/shared_volume/coms/validation_run_info.json'
+  validation_run_status_path: 'MLOps_Airflow/shared_volume/coms/validation_run_status.json'
+  check_validation_run_status_path: 'MLOps_Airflow/shared_volume/coms/check_validation_run_status.sh'
