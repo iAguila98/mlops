@@ -48,14 +48,19 @@ logo_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAkIAAABXCAMAAADf/dozAA
 st.image(logo_url, width=500)
 st.title('Training Models')
 
-st.write('View best performing models and train new ones selecting model type and hyperparameters.')
+st.write('On this page, you can see in the trained model table, all the types of models that have been trained. '
+         'Specifically, it provides information about the last model trained for each of them. In addition, '
+         'in this page it is possible to train already existing models or to create new ones by means of a model type '
+         'and hyperparameters selection system.')
 historical_path = 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
 
 # Show a table with the last registration of each model type
+st.subheader('Trained Models Table')
 historical = pd.read_csv(historical_path)
 get_models_table(historical)
 
 # Define model types selectbox in the dashboard
+st.subheader('Train Your Model')
 model_types = ['Linear Regression', 'Decision Tree', 'Gradient Boosting']
 model_type = st.selectbox('Model type', model_types)
 
@@ -157,16 +162,25 @@ with cols[4]:
 
 # Define the 'launch training' button and what it should execute
 if train_button:
+    # Initialize second try variable, useful to inform the user properly
+    second_try = False
 
-    # Inform the user of different cases when training models
+    # Inform the user when the model already exists, and it is going to be retrained
     if os.path.exists(dag_path) and os.path.exists(model_path):
         st.info('The model and the DAG already exists. It is going to be retrained.', icon="ℹ️")
-    elif os.path.exists(dag_path) and not os.path.exists(model_path):
-        st.info('The DAG model already exists, but there is no model trained yet. Airflow can take a few minutes to '
-                'detect a new DAG.', icon="ℹ️")
+
+    # Inform the user when the model and its dag does not exist, and the dag has to be generated
     elif not os.path.exists(dag_path) and not os.path.exists(model_path):
         st.info('The model DAG does not exist. New orchestrated task is going to be generated. Airflow can take a few '
                 'minutes to detect a new DAG.', icon="ℹ️")
+
+    # Inform the user that Airflow is still waiting for the new dag, so it has to try again in a few minutes
+    elif os.path.exists(dag_path) and not os.path.exists(model_path):
+        st.info('New generated DAG exists, but there is no trained model. Airflow may still be awaiting detection.'
+                , icon="ℹ️")
+        second_try = True
+
+    # Raise an exception when the situation is not expected to happen
     else:
         raise Exception('DAG model no longer exists.')
 
@@ -180,74 +194,76 @@ if train_button:
     p = subprocess.Popen(cmd)
     p.wait()  # Waits until the subprocess is finished
 
-    # Wait two seconds to ensure that the json has been created in the subprocess
-    time.sleep(2)
-
-    # Try read the json file. If it does not exist, it means that it reached the maximum number of attempts
+    # Try to read the dag_run_id from the json
     try:
-        attempts_error = False
         # Read and save the dag_run_id in the json file
         f = open('MLOps_Airflow/shared_volume/coms/train_run_info.json')
         data = json.load(f)
         st.session_state.train_run_id = data['dag_run_id']
         # Delete the json that contains the dag run id, used to check the status of the run
         os.remove('MLOps_Airflow/shared_volume/coms/train_run_info.json')
-    except Exception as e:
-        attempts_error = e
 
-    # If the maximum number of attempts to detect the new DAG is not reached, then executes the following code
-    if not attempts_error:
+    # If dag_run_id or the json does not exist, there is an error
+    except:
+        # When the user has tried for the first time to train a new model but there is an error
+        if second_try is False:
+            # Inform the user about the error
+            st.warning('Airflow is taking too long to detect the new model. The detection is still in progress, but '
+                       'the training has been cancelled. Please, try ordering the training later.', icon="⚠️")
 
-        # St.empty() allows to overwrite messages that are shown to the user in streamlit
-        with st.empty():
+        # When the user has tried again to train the new model, but there is still an error
+        else:
+            st.warning('Airflow has not yet detected the new dag. Please try again in a few minutes.', icon="⚠️")
 
-            # Inform that the trigger has been successfully ordered
-            st.info('The training has been successfully ordered.', icon="ℹ️")
-            time.sleep(3)  # Give time to the user to read the message
+        # We need to delete the file to start a new try
+        os.remove('MLOps_Airflow/shared_volume/coms/train_run_info.json')
 
-            # As long as the process has not been completed, whether successfully or not, keep in the loop.
-            while state != 'success' and state != 'failed':
+        # Stop the streamlit page execution
+        st.stop()
 
-                # Initialize arguments used in the request to REST API
-                dag_id = model_name
-                dag_run_id = st.session_state.train_run_id
+    # St.empty() allows to overwrite messages that are shown to the user in streamlit
+    with st.empty():
 
-                # Execute the request which returns the info about the DAG run and save it
-                file_ = open('MLOps_Airflow/shared_volume/coms/train_run_status.json', 'w')
-                p = subprocess.Popen(['MLOps_Airflow/shared_volume/coms/check_train_run_status.sh',
-                                      dag_id, dag_run_id], stdout=file_)
-                p.wait()  # Waits until the subprocess is finished
+        # Inform that the trigger has been successfully ordered
+        st.info('The training has been successfully ordered.', icon="ℹ️")
+        time.sleep(3)  # Give time to the user to read the message
 
-                # Read the status from the DAG run info extracted
-                f = open('MLOps_Airflow/shared_volume/coms/train_run_status.json')
-                data = json.load(f)
-                state = data['state']
+        # As long as the process has not been completed, whether successfully or not, keep in the loop.
+        while state != 'success' and state != 'failed':
 
-                # Conditions to show messages to the user depending on the DAG run status
-                if state == 'success':
-                    st.success('The training is completed.', icon="✅")
-                elif state == 'failed':
-                    st.error('The training has failed.', icon="🚨")
-                elif state == 'running':
-                    st.info('The training is being performed.', icon="ℹ️")
-                elif state == 'queued':
-                    st.info('The training is in queue.', icon="ℹ️")
-                else:
-                    st.info('Status not expected. Please check the status in the Airflow Webserver: '
-                            'http://localhost:8080/', icon="ℹ️")
+            # Initialize arguments used in the request to REST API
+            dag_id = model_name
+            dag_run_id = st.session_state.train_run_id
 
-                # Wait 2 seconds before repeating the iteration again
-                time.sleep(2)
+            # Execute the request which returns the info about the DAG run and save it
+            file_ = open('MLOps_Airflow/shared_volume/coms/train_run_status.json', 'w')
+            p = subprocess.Popen(['MLOps_Airflow/shared_volume/coms/check_train_run_status.sh',
+                                  dag_id, dag_run_id], stdout=file_)
+            p.wait()  # Waits until the subprocess is finished
 
-            # Delete the run_status.json when the training is finished
-            os.remove('MLOps_Airflow/shared_volume/coms/train_run_status.json')
+            # Read the status from the DAG run info extracted
+            f = open('MLOps_Airflow/shared_volume/coms/train_run_status.json')
+            data = json.load(f)
+            state = data['state']
 
-    # Inform the user about that the process of creating a new DAG is taking too long
-    else:
-        st.warning('Airflow is taking too long to detect the new model. This process is still running in the '
-                   'background.', icon="⚠️")
-        st.warning('You still cannot order the training of the new model, please wait a few minutes and '
-                   'try again.', icon="⚠️")
+            # Conditions to show messages to the user depending on the DAG run status
+            if state == 'success':
+                st.success('The training is completed.', icon="✅")
+            elif state == 'failed':
+                st.error('The training has failed.', icon="🚨")
+            elif state == 'running':
+                st.info('The training is being performed.', icon="ℹ️")
+            elif state == 'queued':
+                st.info('The training is in queue.', icon="ℹ️")
+            else:
+                st.info('Status not expected. Please check the status in the Airflow Webserver: '
+                        'http://localhost:8080/', icon="ℹ️")
+
+            # Wait 2 seconds before repeating the iteration again
+            time.sleep(2)
+
+        # Delete the run_status.json when the training is finished
+        os.remove('MLOps_Airflow/shared_volume/coms/train_run_status.json')
 
 # Refresh streamlit page
 if refresh_button:
