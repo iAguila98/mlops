@@ -52,7 +52,7 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
     df.to_json(coms_paths['train_dag_info_path'])
 
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
-    num_retries = 5
+    num_retries = 150
     sleep_time = 2
     attempts_error = False
     ghost_error = False

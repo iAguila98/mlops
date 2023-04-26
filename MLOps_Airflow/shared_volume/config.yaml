@@ -1,3 +1,5 @@
+dags_paths: 'MLOps_Airflow/dags'
+
 data_paths:
   historical_path: 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
 

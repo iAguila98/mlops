@@ -116,8 +116,8 @@ default_args = {
 }
 
 dag = DAG(dag_id=dag_id_model,
-          description='DAG that will get triggered monthly to train the correspondent model.',
-          schedule='0 0 1 * *',
+          description='DAG that will get triggered weekly to train the correspondent model.',
+          schedule='0 0 * * 0',
           default_args=default_args,
           start_date=start_date_change,
           catchup=False)
