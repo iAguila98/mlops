@@ -240,7 +240,7 @@ if train_button:
         # Delete the json that contains the dag run id, used to check the status of the run
         os.remove(coms_paths['train_run_info_path'])
 
-        # Ghost DAG can be executed successfully, therefore there is no problem and json can be deleted
+        # Ghost DAG can be executed successfully, therefore there is no problem and json should be deleted
         if os.path.exists(coms_paths['error_path']):
             os.remove(coms_paths['error_path'])
 
@@ -256,36 +256,39 @@ if train_button:
 
             # When the error has been caused by reaching the maximum number of attempts to wait for DAG detection
             if type_error['error'] == 'max_attempts':
-
-                # When the user has tried for the first time to train a new model but there is an error
-                if second_try is False:
-                    # Inform the user about the error
-                    st.warning('Airflow is taking too long to detect the new model. The detection is still in '
-                               'progress, but the training has been cancelled. Please, try ordering the training later.'
-                               , icon="⚠️")
-
-                # When the user has tried again to train the new model, but there is still an error
-                else:
-                    st.warning('Airflow has not yet detected the new dag. Please try again in a few minutes.'
-                               , icon="⚠️")
-
-                # We need to delete the train run and error files to start a new try
-                os.remove(coms_paths['train_run_info_path'])
-                os.remove(coms_paths['error_path'])
+                # Inform the user about the error
+                st.warning('Airflow is taking too long to detect the new model. The detection is still in '
+                           'progress, but the training has been cancelled. Please, try ordering the training later.'
+                           , icon="⚠️")
 
             # When the error has been caused by an incompletely deleted DAG
             else:
-                st.warning('DAG existed previously but Airflow did not eliminate it completely. It has been reordered '
-                           'for generation, but you will need to order the model training when this is completed.'
-                           , icon="⚠️")
+                # Inform the user about the error
+                st.warning('DAG existed previously but Airflow did not eliminate it completely. Its generation has '
+                           'been reordered. The ordering of the model training has to be ordered when this is '
+                           'completed.', icon="⚠️")
+                # We need to delete the train run file to start a new try
+                os.remove(coms_paths['train_run_info_path'])
 
-                # We need to delete the error file to start a new try
-                os.remove(coms_paths['error_path'])
+            # We need to delete the error file to start a new try
+            os.remove(coms_paths['error_path'])
 
             # Stop the streamlit page execution
             st.stop()
 
-        # When there isn't a json that indicates the type of error, we don't know its cause.
+        # When the user has tried to train the model again, but Airflow still has not detected the new DAG
+        elif not os.path.exists(coms_paths['error_path']) and second_try is True:
+            # Inform the user about the error
+            st.warning('Airflow has not yet detected the new dag. Please try again in a few minutes.'
+                       , icon="⚠️")
+
+            # We need to delete the train run file to start a new try
+            os.remove(coms_paths['train_run_info_path'])
+
+            # Stop the streamlit page execution
+            st.stop()
+
+        # When the cause of the error is unknown
         else:
             # We need to delete the train run files to start a new try
             os.remove(coms_paths['train_run_info_path'])
