@@ -228,6 +228,9 @@ if train_button:
     p = subprocess.Popen(cmd)
     p.wait()  # Waits until the subprocess is finished
 
+    # Make sure that there is time to detect new json files created in dag_generation.py
+    time.sleep(2)
+
     # Try to read the dag_run_id from the json
     try:
         # Read and save the dag_run_id in the json file
@@ -237,23 +240,58 @@ if train_button:
         # Delete the json that contains the dag run id, used to check the status of the run
         os.remove(coms_paths['train_run_info_path'])
 
+        # Ghost DAG can be executed successfully, therefore there is no problem and json can be deleted
+        if os.path.exists(coms_paths['error_path']):
+            os.remove(coms_paths['error_path'])
+
     # If dag_run_id or the json does not exist, there is an error
     except:
-        # When the user has tried for the first time to train a new model but there is an error
-        if second_try is False:
-            # Inform the user about the error
-            st.warning('Airflow is taking too long to detect the new model. The detection is still in progress, but '
-                       'the training has been cancelled. Please, try ordering the training later.', icon="⚠️")
 
-        # When the user has tried again to train the new model, but there is still an error
+        # When there is a json that indicates the type of error
+        if os.path.exists(coms_paths['error_path']):
+
+            # Read the type of error that indicates
+            f = open(coms_paths['error_path'])
+            type_error = json.load(f)
+
+            # When the error has been caused by reaching the maximum number of attempts to wait for DAG detection
+            if type_error['error'] == 'max_attempts':
+
+                # When the user has tried for the first time to train a new model but there is an error
+                if second_try is False:
+                    # Inform the user about the error
+                    st.warning('Airflow is taking too long to detect the new model. The detection is still in '
+                               'progress, but the training has been cancelled. Please, try ordering the training later.'
+                               , icon="⚠️")
+
+                # When the user has tried again to train the new model, but there is still an error
+                else:
+                    st.warning('Airflow has not yet detected the new dag. Please try again in a few minutes.'
+                               , icon="⚠️")
+
+                # We need to delete the train run and error files to start a new try
+                os.remove(coms_paths['train_run_info_path'])
+                os.remove(coms_paths['error_path'])
+
+            # When the error has been caused by an incompletely deleted DAG
+            else:
+                st.warning('DAG existed previously but Airflow did not eliminate it completely. It has been reordered '
+                           'for generation, but you will need to order the model training when this is completed.'
+                           , icon="⚠️")
+
+                # We need to delete the error file to start a new try
+                os.remove(coms_paths['error_path'])
+
+            # Stop the streamlit page execution
+            st.stop()
+
+        # When there isn't a json that indicates the type of error, we don't know its cause.
         else:
-            st.warning('Airflow has not yet detected the new dag. Please try again in a few minutes.', icon="⚠️")
+            # We need to delete the train run files to start a new try
+            os.remove(coms_paths['train_run_info_path'])
 
-        # We need to delete the file to start a new try
-        os.remove(coms_paths['train_run_info_path'])
-
-        # Stop the streamlit page execution
-        st.stop()
+            # Send a message to be aware of the problem
+            raise Exception('Unknown error.')
 
     # St.empty() allows to overwrite messages that are shown to the user in streamlit
     with st.empty():

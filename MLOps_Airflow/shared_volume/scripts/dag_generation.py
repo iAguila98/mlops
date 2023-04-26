@@ -52,12 +52,13 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
     df.to_json(coms_paths['train_dag_info_path'])
 
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
-    num_retries = 150
+    num_retries = 5
     sleep_time = 2
-    dag_error = None
+    attempts_error = False
+    ghost_error = False
     for x in range(0, num_retries):  # Try 150 times, aprox. 5 minutes of waiting
         try:
-            dag_error = None
+            attempts_error = False
             # Execute shell scripts that gets the basic information of the DAG
             file_ = open(coms_paths['train_dag_info_path'], 'w')
             p = subprocess.Popen([coms_paths['check_dag_exists'], dag_id], stdout=file_)
@@ -69,15 +70,21 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
             status = data['dag_id']
 
         # When the DAG does not exist, we can't read the 'dag_id' key so the loop continues
-        except Exception as e:
-            dag_error = e
+        except:
+            attempts_error = True
 
-        if dag_error:
+        # If the DAG does not exist, wait 'sleep_time'
+        if attempts_error is True:
             time.sleep(sleep_time)
+
         # When the DAG exists, the status variable will save the 'dag_id' from the json and the loop will end
         else:
             os.remove(coms_paths['train_dag_info_path'])
-            break
+            # When the DAG is detected at the first time, it is an error caused by incomplete removal.
+            if x == 0:
+                ghost_error = True
+            else:
+                break
 
     # Create an empty json where we will save the run information
     df = pd.DataFrame()
@@ -88,11 +95,34 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
     p = subprocess.Popen([coms_paths['trigger_train_path'], dag_id], stdout=file_)
     p.wait()  # Waits until the subprocess is finished
 
-    if dag_error:
-        # Send a message to be aware of the problem
-        logging.info('Number of attempts exceeded.')
+    if attempts_error is True:
         # We need to delete the file to start a new try
         os.remove(coms_paths['train_dag_info_path'])
+
+        # Create an empty json where we will save the run information
+        df = pd.DataFrame()
+        df.to_json(coms_paths['error_path'])
+
+        # Create an empty json where we will communicate the error
+        with open(coms_paths['error_path'], 'w') as f:
+            json.dump({'error': 'max_attempts'}, f)
+
+        # Send a message to be aware of the problem
+        raise Exception('Number of attempts exceeded.')
+
+    # When the DAG is detected at the first time, it is an error caused by incomplete removal.
+    if ghost_error is True:
+        # Create an empty json where we will save the run information
+        df = pd.DataFrame()
+        df.to_json(coms_paths['error_path'])
+
+        # Create an empty json where we will communicate the error
+        with open(coms_paths['error_path'], 'w') as f:
+            json.dump({'error': 'ghost_dag'}, f)
+
+        # Send a message to be aware of the problem
+        raise Exception('Ghost DAG. Existed in Airflow but has not been completely eliminated.')
+
 
 # If the DAG already exists, trigger it and save the dag run information
 elif os.path.exists(dag_path):

@@ -20,3 +20,5 @@ coms_paths:
   validation_run_info_path: 'MLOps_Airflow/shared_volume/coms/validation_run_info.json'
   validation_run_status_path: 'MLOps_Airflow/shared_volume/coms/validation_run_status.json'
   check_validation_run_status_path: 'MLOps_Airflow/shared_volume/coms/check_validation_run_status.sh'
+  # Error paths
+  error_path: 'MLOps_Airflow/shared_volume/coms/error.json'
