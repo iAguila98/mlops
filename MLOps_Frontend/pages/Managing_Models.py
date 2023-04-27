@@ -1,6 +1,9 @@
+import json
 import os
+import subprocess
 import yaml
 
+import pandas as pd
 import streamlit as st
 
 
@@ -21,8 +24,9 @@ def read_config_yaml(yaml_path):
         dags_paths = config['dags_paths']
         data_paths = config['data_paths']
         models_paths = config['models_paths']
+        coms_paths = config['coms_paths']
 
-    return models_paths, data_paths, dags_paths
+    return models_paths, data_paths, dags_paths, coms_paths
 
 
 ########################################################################################################################
@@ -56,10 +60,10 @@ st.write('Add description')
 ########################################################################################################################
 
 # Read paths from the YAML
-models_paths, data_paths, dags_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
+models_paths, data_paths, dags_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
 
 # Create select box of trained models
-selected_model = st.selectbox('Select Model', os.listdir(models_paths['models_repository_path']))
+selected_model = st.selectbox('Select Model', os.listdir(models_paths['models_repository']))
 
 # Define the buttons of the page
 cols = st.columns(5)
@@ -77,13 +81,31 @@ with cols[4]:
 
 # When pressing the delete button
 if delete_button:
+    # When there are models to select
+    if selected_model is not None:
 
-    # Check status del DAG de validation y del DAG de entrenamiento correspondiente para permitir esta ejecución.
+        # Make a manual trigger of the DAG that validates the models (through a shell script)
+        file_ = open(coms_paths['dag_validation_runs'], 'w')
+        p = subprocess.Popen(coms_paths['list_dag_validation_runs'], stdout=file_)
+        p.wait()  # Waits until the subprocess is finished
 
-    # Remove model in the model repository
-    os.remove(models_paths['models_repository_path'] + '/' + selected_model)
-    os.remove(dags_paths + '/' + selected_model[:-4] + '.py')
+        # CHECKEAR QUE EL ÚLTIMO REGISTRO NO ESTÉ EN QUEUE O RUNNING
 
-    # Eliminar los registors en el historical_validation.csv
+
+        #st.warning('The model is involved in the execution of the evaluation of all models. Please, try again in a '
+              #     'few minutes.', icon="⚠️")
+        #st.stop()
+
+        # Remove model in the model repository
+        #os.remove(models_paths['models_repository'] + '/' + selected_model)
+        #os.remove(dags_paths + '/' + selected_model[:-4] + '.py')
+
+        # Eliminar los registros en el historical_validation.csv
+
+
+
+    # When there aren't models to select
+    else:
+        st.error('There are no trained models.', icon="🚨")
 
 

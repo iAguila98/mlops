@@ -87,7 +87,7 @@ data_paths, models_paths, scripts_paths, coms_paths = read_config_yaml('MLOps_Ai
 
 # Visualize historical graph validation
 st.subheader('Historical Graph')
-historical = pd.read_csv(data_paths['historical_path'])
+historical = pd.read_csv(data_paths['historical_dataset'])
 column_metrics = ['mae', 'wmape', 'rmse', 'tweedie']
 tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
 
@@ -121,23 +121,23 @@ state = ''
 if evaluate_button:
 
     # Initialize while loop parameters
-    model_num = len(os.listdir(models_paths['models_repository_path']))
+    model_num = len(os.listdir(models_paths['models_repository']))
 
     # When there are models trained, execute the following code
     if model_num != 0:
 
         # Make a manual trigger of the DAG that validates the models (through a shell script)
-        file_ = open(coms_paths['validation_run_info_path'], 'w')
-        p = subprocess.Popen(coms_paths['trigger_validation_paths'], stdout=file_)
+        file_ = open(coms_paths['validation_run_info'], 'w')
+        p = subprocess.Popen(coms_paths['trigger_validation'], stdout=file_)
         p.wait()  # Waits until the subprocess is finished
 
         # Read the dag_run_id from the json created when the trigger is performed
-        f = open(coms_paths['validation_run_info_path'])
+        f = open(coms_paths['validation_run_info'])
         data = json.load(f)
         st.session_state.validation_run_id = data['dag_run_id']
 
         # Delete the json that contains the dag run id, used to check the status of the run
-        os.remove(coms_paths['validation_run_info_path'])
+        os.remove(coms_paths['validation_run_info'])
 
         # St.empty() allows to overwrite messages that are shown to the user in streamlit
         with st.empty():
@@ -153,13 +153,13 @@ if evaluate_button:
                 dag_run_id = st.session_state.validation_run_id
 
                 # Execute the request which returns the info about the DAG run and save it
-                file_ = open(coms_paths['validation_run_status_path'], 'w')
-                p = subprocess.Popen([coms_paths['check_validation_run_status_path'], dag_run_id],
+                file_ = open(coms_paths['validation_run_status'], 'w')
+                p = subprocess.Popen([coms_paths['check_validation_run_status'], dag_run_id],
                                      stdout=file_)
                 p.wait()  # Waits until the subprocess is finished
 
                 # Read the status from the DAG run info extracted
-                f = open(coms_paths['validation_run_status_path'])
+                f = open(coms_paths['validation_run_status'])
                 data = json.load(f)
                 state = data['state']
 
@@ -180,7 +180,7 @@ if evaluate_button:
                 time.sleep(2)
 
             # Delete the run_status.json when the validation is finished
-            os.remove(coms_paths['validation_run_status_path'])
+            os.remove(coms_paths['validation_run_status'])
 
     # When there are no models trained yet, notify the user
     else:

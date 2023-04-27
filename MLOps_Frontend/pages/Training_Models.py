@@ -1,10 +1,10 @@
 import json
 import os
+import subprocess
 import time
 import yaml
 
 import pandas as pd
-import subprocess
 import streamlit as st
 
 from csv import DictWriter
@@ -87,7 +87,7 @@ data_paths, scripts_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_v
 
 # Show a table with the last registration of each model type
 st.subheader('Trained Models Table')
-historical = pd.read_csv(data_paths['historical_path'])
+historical = pd.read_csv(data_paths['historical_dataset'])
 get_models_table(historical)
 
 # Define model types selectbox in the dashboard
@@ -219,12 +219,12 @@ if train_button:
         raise Exception('DAG model no longer exists.')
 
     # Write an initial row in the historical_validation dataset
-    with open(data_paths['historical_path'], 'a') as f_object:
+    with open(data_paths['historical_dataset'], 'a') as f_object:
         dictwriter_object = DictWriter(f_object, fieldnames=historical.columns)
         dictwriter_object.writerow(training_dict)
 
     # Execute the dag_generation code to create the dag file
-    cmd = ['python', scripts_paths['dag_generation_path']]
+    cmd = ['python', scripts_paths['dag_generation']]
     p = subprocess.Popen(cmd)
     p.wait()  # Waits until the subprocess is finished
 
@@ -234,24 +234,24 @@ if train_button:
     # Try to read the dag_run_id from the json
     try:
         # Read and save the dag_run_id in the json file
-        f = open(coms_paths['train_run_info_path'])
+        f = open(coms_paths['train_run_info'])
         data = json.load(f)
         st.session_state.train_run_id = data['dag_run_id']
         # Delete the json that contains the dag run id, used to check the status of the run
-        os.remove(coms_paths['train_run_info_path'])
+        os.remove(coms_paths['train_run_info'])
 
         # Ghost DAG can be executed successfully, therefore there is no problem and json should be deleted
-        if os.path.exists(coms_paths['error_path']):
-            os.remove(coms_paths['error_path'])
+        if os.path.exists(coms_paths['error']):
+            os.remove(coms_paths['error'])
 
     # If dag_run_id or the json does not exist, there is an error
     except:
 
         # When there is a json that indicates the type of error
-        if os.path.exists(coms_paths['error_path']):
+        if os.path.exists(coms_paths['error']):
 
             # Read the type of error that indicates
-            f = open(coms_paths['error_path'])
+            f = open(coms_paths['error'])
             type_error = json.load(f)
 
             # When the error has been caused by reaching the maximum number of attempts to wait for DAG detection
@@ -265,25 +265,25 @@ if train_button:
             else:
                 # Inform the user about the error
                 st.warning('DAG existed previously but Airflow did not eliminate it completely. Its generation has '
-                           'been reordered. The ordering of the model training has to be ordered when this is '
+                           'been reordered. The training of the model has to be ordered when this process is '
                            'completed.', icon="⚠️")
                 # We need to delete the train run file to start a new try
-                os.remove(coms_paths['train_run_info_path'])
+                os.remove(coms_paths['train_run_info'])
 
             # We need to delete the error file to start a new try
-            os.remove(coms_paths['error_path'])
+            os.remove(coms_paths['error'])
 
             # Stop the streamlit page execution
             st.stop()
 
         # When the user has tried to train the model again, but Airflow still has not detected the new DAG
-        elif not os.path.exists(coms_paths['error_path']) and second_try is True:
+        elif not os.path.exists(coms_paths['error']) and second_try is True:
             # Inform the user about the error
             st.warning('Airflow has not yet detected the new dag. Please try again in a few minutes.'
                        , icon="⚠️")
 
             # We need to delete the train run file to start a new try
-            os.remove(coms_paths['train_run_info_path'])
+            os.remove(coms_paths['train_run_info'])
 
             # Stop the streamlit page execution
             st.stop()
@@ -291,7 +291,7 @@ if train_button:
         # When the cause of the error is unknown
         else:
             # We need to delete the train run files to start a new try
-            os.remove(coms_paths['train_run_info_path'])
+            os.remove(coms_paths['train_run_info'])
 
             # Send a message to be aware of the problem
             raise Exception('Unknown error.')
@@ -311,13 +311,13 @@ if train_button:
             dag_run_id = st.session_state.train_run_id
 
             # Execute the request which returns the info about the DAG run and save it
-            file_ = open(coms_paths['train_run_status_path'], 'w')
-            p = subprocess.Popen([coms_paths['check_train_run_status_path'],
+            file_ = open(coms_paths['train_run_status'], 'w')
+            p = subprocess.Popen([coms_paths['check_train_run_status'],
                                   dag_id, dag_run_id], stdout=file_)
             p.wait()  # Waits until the subprocess is finished
 
             # Read the status from the DAG run info extracted
-            f = open(coms_paths['train_run_status_path'])
+            f = open(coms_paths['train_run_status'])
             data = json.load(f)
             state = data['state']
 
@@ -338,7 +338,7 @@ if train_button:
             time.sleep(2)
 
         # Delete the run_status.json when the training is finished
-        os.remove(coms_paths['train_run_status_path'])
+        os.remove(coms_paths['train_run_status'])
 
 # Refresh streamlit page
 if refresh_button:

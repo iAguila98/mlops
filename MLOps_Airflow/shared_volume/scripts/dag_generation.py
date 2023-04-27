@@ -19,12 +19,12 @@ with open('MLOps_Airflow/shared_volume/config.yaml') as yaml_file:
     coms_paths = config['coms_paths']
 
 # Reading the historical validation dataset
-data = pd.read_csv(data_paths['historical_path'])
+data = pd.read_csv(data_paths['historical_dataset'])
 filtered_data = data[data['train_requested']==True]
 
 # We have to delete the train_requested=TRUE row after reading it.
 base_df = data[data['train_requested']!=True].set_index('model')
-base_df.to_csv(data_paths['historical_path'])
+base_df.to_csv(data_paths['historical_dataset'])
 
 # Setting the parameters of the create_dag function
 dag_id = filtered_data.iloc[0]['model']
@@ -49,7 +49,7 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
 
     # Create an empty json where we will save the dag information
     df = pd.DataFrame()
-    df.to_json(coms_paths['train_dag_info_path'])
+    df.to_json(coms_paths['train_dag_info'])
 
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
     num_retries = 150
@@ -60,12 +60,12 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
         try:
             attempts_error = False
             # Execute shell scripts that gets the basic information of the DAG
-            file_ = open(coms_paths['train_dag_info_path'], 'w')
+            file_ = open(coms_paths['train_dag_info'], 'w')
             p = subprocess.Popen([coms_paths['check_dag_exists'], dag_id], stdout=file_)
             p.wait()  # Waits until the subprocess is finished
 
             # Check the status of the DAG. If it is 404 it means that it is still not created
-            f = open(coms_paths['train_dag_info_path'])
+            f = open(coms_paths['train_dag_info'])
             data = json.load(f)
             status = data['dag_id']
 
@@ -79,7 +79,7 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
 
         # When the DAG exists, the status variable will save the 'dag_id' from the json and the loop will end
         else:
-            os.remove(coms_paths['train_dag_info_path'])
+            os.remove(coms_paths['train_dag_info'])
             # When the DAG is detected at the first time, it is an error caused by incomplete removal.
             if x == 0:
                 ghost_error = True
@@ -88,23 +88,23 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
 
     # Create an empty json where we will save the run information
     df = pd.DataFrame()
-    df.to_json(coms_paths['train_run_info_path'])
+    df.to_json(coms_paths['train_run_info'])
 
     # Now we can trigger the DAG manually and save the dag run information
-    file_ = open(coms_paths['train_run_info_path'], 'w')
-    p = subprocess.Popen([coms_paths['trigger_train_path'], dag_id], stdout=file_)
+    file_ = open(coms_paths['train_run_info'], 'w')
+    p = subprocess.Popen([coms_paths['trigger_train'], dag_id], stdout=file_)
     p.wait()  # Waits until the subprocess is finished
 
     if attempts_error is True:
         # We need to delete the file to start a new try
-        os.remove(coms_paths['train_dag_info_path'])
+        os.remove(coms_paths['train_dag_info'])
 
         # Create an empty json where we will save the run information
         df = pd.DataFrame()
-        df.to_json(coms_paths['error_path'])
+        df.to_json(coms_paths['error'])
 
         # Create an empty json where we will communicate the error
-        with open(coms_paths['error_path'], 'w') as f:
+        with open(coms_paths['error'], 'w') as f:
             json.dump({'error': 'max_attempts'}, f)
 
         # Send a message to be aware of the problem
@@ -114,10 +114,10 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
     if ghost_error is True:
         # Create an empty json where we will save the run information
         df = pd.DataFrame()
-        df.to_json(coms_paths['error_path'])
+        df.to_json(coms_paths['error'])
 
         # Create an empty json where we will communicate the error
-        with open(coms_paths['error_path'], 'w') as f:
+        with open(coms_paths['error'], 'w') as f:
             json.dump({'error': 'ghost_dag'}, f)
 
         # Send a message to be aware of the problem
@@ -130,11 +130,11 @@ elif os.path.exists(dag_path):
 
     # Create an empty json where we will save the run information
     df = pd.DataFrame()
-    df.to_json(coms_paths['train_run_info_path'])
+    df.to_json(coms_paths['train_run_info'])
 
     # Now we can trigger the DAG manually and save the dag run information
-    file_ = open(coms_paths['train_run_info_path'], 'w')
-    p = subprocess.Popen([coms_paths['trigger_train_path'], dag_id], stdout=file_)
+    file_ = open(coms_paths['train_run_info'], 'w')
+    p = subprocess.Popen([coms_paths['trigger_train'], dag_id], stdout=file_)
     p.wait()  # Waits until the subprocess is finished
 
 # Raise an exception when the situation is not expected to happen
