@@ -331,8 +331,8 @@ if train_button:
             elif state == 'queued':
                 st.info('The training is in queue.', icon="ℹ️")
             else:
-                st.info('Status not expected. Please check the status in the Airflow Webserver: '
-                        'http://localhost:8080/', icon="ℹ️")
+                st.warning('Status not expected. Please check the status in the Airflow Webserver: '
+                           'http://localhost:8080/', icon="⚠️")
 
             # Wait 2 seconds before repeating the iteration again
             time.sleep(2)

@@ -1,6 +1,8 @@
 import json
 import os
+import pickle
 import subprocess
+import time
 import yaml
 
 import pandas as pd
@@ -62,7 +64,20 @@ st.write('Add description')
 # Read paths from the YAML
 models_paths, data_paths, dags_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
 
+# Read trained models and save its descriptions
+st.subheader('Models Repository Table')
+descriptions = []
+trained_models = os.listdir(models_paths['models_repository'])
+for model in trained_models:
+    model_info = pickle.load(open(models_paths['models_repository'] + '/' + model, 'rb'))
+    descriptions.append(str(model_info))
+
+# Show a table with information about the trained models
+models_df = pd.DataFrame({'Model File': trained_models, 'Description': descriptions})
+st.table(models_df)
+
 # Create select box of trained models
+st.subheader('Manage Models')
 selected_model = st.selectbox('Select Model', os.listdir(models_paths['models_repository']))
 
 # Define the buttons of the page
@@ -84,28 +99,57 @@ if delete_button:
     # When there are models to select
     if selected_model is not None:
 
-        # Make a manual trigger of the DAG that validates the models (through a shell script)
+        # Request information about the runs of the validation DAG
         file_ = open(coms_paths['dag_validation_runs'], 'w')
         p = subprocess.Popen(coms_paths['list_dag_validation_runs'], stdout=file_)
         p.wait()  # Waits until the subprocess is finished
 
-        # CHECKEAR QUE EL ÚLTIMO REGISTRO NO ESTÉ EN QUEUE O RUNNING
+        # Read the information returned
+        f = open(coms_paths['dag_validation_runs'])
+        runs_info = json.load(f)
 
+        # If the model is involved in an execution of the validation DAG, then wait until it's finished
+        if runs_info['dag_runs'][-1]['state'] == 'running' or runs_info['dag_runs'][-1]['state'] == 'queued':
 
-        #st.warning('The model is involved in the execution of the evaluation of all models. Please, try again in a '
-              #     'few minutes.', icon="⚠️")
-        #st.stop()
+            # Inform the user
+            st.warning('The model is involved in the execution of the evaluation of all models. Please, try again in a '
+                       'few minutes.', icon="⚠️")
 
-        # Remove model in the model repository
-        #os.remove(models_paths['models_repository'] + '/' + selected_model)
-        #os.remove(dags_paths + '/' + selected_model[:-4] + '.py')
+            # Remove the json file
+            os.remove(coms_paths['dag_validation_runs'])
 
-        # Eliminar los registros en el historical_validation.csv
+            # Stop the streamlit page execution
+            st.stop()
 
+        # If the model is not involved in an execution of the validation DAG, delete it
+        else:
 
+            # Remove model in the model repository and the correspondent DAG in python
+            os.remove(models_paths['models_repository'] + '/' + selected_model)
+            os.remove(dags_paths + '/' + selected_model[:-4] + '.py')
+
+            # Remove the DAG and its tasks in Airflow
+            p = subprocess.Popen([coms_paths['delete_dag'], selected_model[:-4]])
+            p.wait()  # Waits until the subprocess is finished
+
+            # Delete the correspondent rows in the historical_validation.csv
+            historical = pd.read_csv(data_paths['historical_dataset'])
+            historical = historical.loc[historical['model'] != selected_model[:-4]]
+            historical.to_csv(data_paths['historical_dataset'], index=False)
+
+            # Remove the json file
+            os.remove(coms_paths['dag_validation_runs'])
+
+            # Inform the user that Airflow takes a few minutes to fully delete the DAG
+            st.success('Correspondent files of the model has been successfully deleted.', icon="✅")
+            st.info('Airflow can take a few minutes to fully delete the DAG.', icon="ℹ️")
+
+            # Give time to the user to read the messages before updating the selectbox
+            time.sleep(4)
+
+            # Rerun the page to update the selectbox
+            st.experimental_rerun()
 
     # When there aren't models to select
     else:
         st.error('There are no trained models.', icon="🚨")
-
-
