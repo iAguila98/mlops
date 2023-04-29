@@ -47,10 +47,6 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
     # We create the dag (this will be executed automatically the webserver detects it)
     create_dag(dag_path, dag_id, hyperparameters)
 
-    # Create an empty json where we will save the dag information  --> NECESARIO??????
-    df = pd.DataFrame()
-    df.to_json(coms_paths['train_dag_info'])
-
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
     num_retries = 150
     sleep_time = 2
@@ -85,10 +81,6 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
                 ghost_error = True
             else:
                 break
-
-    # Create an empty json where we will save the run information  --> NECESARIO????
-    df = pd.DataFrame()
-    df.to_json(coms_paths['train_run_info'])
 
     # Now we can trigger the DAG manually and save the dag run information
     file_ = open(coms_paths['train_run_info'], 'w')
@@ -127,10 +119,6 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
 # If the DAG already exists, trigger it and save the dag run information
 elif os.path.exists(dag_path):
     logging.info('DAG detected, trying to trigger the training...')
-
-    # Create an empty json where we will save the run information  --> NECESARIOO?????
-    df = pd.DataFrame()
-    df.to_json(coms_paths['train_run_info'])
 
     # Now we can trigger the DAG manually and save the dag run information
     file_ = open(coms_paths['train_run_info'], 'w')

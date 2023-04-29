@@ -77,15 +77,20 @@ for model in trained_models:
     model_info = pickle.load(open(models_paths['models_repository'] + '/' + model, 'rb'))
     descriptions.append(str(model_info))
 
-    # Execute shell scripts that gets the basic information of the DAG
-    file_ = open(coms_paths['pause_dag_info'], 'w')
-    p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
-    p.wait()  # Waits until the subprocess is finished
+    try:
+        # Execute shell scripts that gets the basic information of the DAG
+        file_ = open(coms_paths['pause_dag_info'], 'w')
+        p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
+        p.wait()  # Waits until the subprocess is finished
 
-    # Add pause information in the list
-    f = open(coms_paths['pause_dag_info'])
-    info = json.load(f)
-    pause_info.append(info['is_paused'])
+        # Add pause information in the list
+        f = open(coms_paths['pause_dag_info'])
+        info = json.load(f)
+        pause_info.append(info['is_paused'])
+
+    except:
+        st.error('There is no connection with Airflow.', icon="🚨")
+        st.stop()
 
 # Delete json file of pause/unpause info
 os.remove(coms_paths['pause_dag_info'])
@@ -104,17 +109,18 @@ selected_model = st.selectbox('Select Model', os.listdir(models_paths['models_re
 # Define the buttons of the page
 cols = st.columns(5)
 with cols[0]:
-    pause_train_button = st.button('PAUSE/ACTIVATE CT', help='Pauses the Continuous Training, i.e., the Airflow DAG '
-                                                             'that trains the model.')
+    refresh_button = st.button('REFRESH', help='Refresh the page.')
 with cols[1]:
     pass
 with cols[2]:
-    delete_button = st.button('DELETE MODEL', help='Deletes model from model repository, historical dataset and '
-                                                   'Airflow. Logs are not deleted.')
+    pause_train_button = st.button('PAUSE/ACTIVATE CT', help='Pauses the Continuous Training, i.e., the Airflow DAG '
+                                                             'that trains the model.')
 with cols[3]:
     pass
+
 with cols[4]:
-    pass
+    delete_button = st.button('DELETE MODEL', help='Deletes model from model repository, historical dataset and '
+                                                   'Airflow. Logs are not deleted.')
 
 
 # When pressing the delete button
@@ -181,7 +187,7 @@ if delete_button:
 if pause_train_button:
 
     # Read paused model info
-    paused = models_df[models_df['Model File'] == selected_model]['Pause'][0]
+    paused = models_df[models_df['Model File'] == selected_model]['Pause'].values[0]
 
     # If the model is not paused, then pause it
     if not paused:
@@ -208,6 +214,7 @@ if pause_train_button:
         raise Exception('Situation not expected.')
 
 
-
+if refresh_button:
+    st.empty()
 
 
