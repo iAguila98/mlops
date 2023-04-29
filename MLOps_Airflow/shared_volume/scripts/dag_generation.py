@@ -47,7 +47,7 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
     # We create the dag (this will be executed automatically the webserver detects it)
     create_dag(dag_path, dag_id, hyperparameters)
 
-    # Create an empty json where we will save the dag information
+    # Create an empty json where we will save the dag information  --> NECESARIO??????
     df = pd.DataFrame()
     df.to_json(coms_paths['train_dag_info'])
 
@@ -86,7 +86,7 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
             else:
                 break
 
-    # Create an empty json where we will save the run information
+    # Create an empty json where we will save the run information  --> NECESARIO????
     df = pd.DataFrame()
     df.to_json(coms_paths['train_run_info'])
 
@@ -128,7 +128,7 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
 elif os.path.exists(dag_path):
     logging.info('DAG detected, trying to trigger the training...')
 
-    # Create an empty json where we will save the run information
+    # Create an empty json where we will save the run information  --> NECESARIOO?????
     df = pd.DataFrame()
     df.to_json(coms_paths['train_run_info'])
 

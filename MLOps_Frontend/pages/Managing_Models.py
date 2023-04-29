@@ -67,27 +67,50 @@ models_paths, data_paths, dags_paths, coms_paths = read_config_yaml('MLOps_Airfl
 # Read trained models and save its descriptions
 st.subheader('Models Repository Table')
 descriptions = []
+pause_info = []
 trained_models = os.listdir(models_paths['models_repository'])
+
+# For each model in the model repository
 for model in trained_models:
+
+    # Read the pickle file and save the information
     model_info = pickle.load(open(models_paths['models_repository'] + '/' + model, 'rb'))
     descriptions.append(str(model_info))
 
+    # Execute shell scripts that gets the basic information of the DAG
+    file_ = open(coms_paths['pause_dag_info'], 'w')
+    p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
+    p.wait()  # Waits until the subprocess is finished
+
+    # Add pause information in the list
+    f = open(coms_paths['pause_dag_info'])
+    info = json.load(f)
+    pause_info.append(info['is_paused'])
+
+# Delete json file of pause/unpause info
+os.remove(coms_paths['pause_dag_info'])
+
 # Show a table with information about the trained models
-models_df = pd.DataFrame({'Model File': trained_models, 'Description': descriptions})
+models_df = pd.DataFrame({'Model File': trained_models, 'Description': descriptions, 'Pause': pause_info})
 st.table(models_df)
 
 # Create select box of trained models
 st.subheader('Manage Models')
 selected_model = st.selectbox('Select Model', os.listdir(models_paths['models_repository']))
 
+
+########################################################################################################################
+
 # Define the buttons of the page
 cols = st.columns(5)
 with cols[0]:
-    pause_train_button = st.button('PAUSE CT', help='Pauses the Continuous Training, i.e., the Airflow DAG.')
+    pause_train_button = st.button('PAUSE/ACTIVATE CT', help='Pauses the Continuous Training, i.e., the Airflow DAG '
+                                                             'that trains the model.')
 with cols[1]:
     pass
 with cols[2]:
-    delete_button = st.button('DELETE MODEL')
+    delete_button = st.button('DELETE MODEL', help='Deletes model from model repository, historical dataset and '
+                                                   'Airflow. Logs are not deleted.')
 with cols[3]:
     pass
 with cols[4]:
@@ -153,3 +176,38 @@ if delete_button:
     # When there aren't models to select
     else:
         st.error('There are no trained models.', icon="🚨")
+
+
+if pause_train_button:
+
+    # Read paused model info
+    paused = models_df[models_df['Model File'] == selected_model]['Pause'][0]
+
+    # If the model is not paused, then pause it
+    if not paused:
+
+        # Remove the DAG and its tasks in Airflow
+        p = subprocess.Popen([coms_paths['pause_dag'], selected_model[:-4]])
+        p.wait()  # Waits until the subprocess is finished
+
+        # Inform the user
+        st.success('The DAG model has been paused. From now on, it will not be trained automatically.', icon="✅")
+        st.info('REMEMBER: If the model is trained manually in the Training Models page, it will be activated '
+                'again.', icon="ℹ️")
+
+    # If the model is paused, then activate it
+    elif paused:
+        # Remove the DAG and its tasks in Airflow
+        p = subprocess.Popen([coms_paths['unpause_dag'], selected_model[:-4]])
+        p.wait()  # Waits until the subprocess is finished
+
+        # Inform the user
+        st.success('The DAG model has been activated. From now on, it will be trained automatically.', icon="✅")
+
+    else:
+        raise Exception('Situation not expected.')
+
+
+
+
+

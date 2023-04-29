@@ -12,9 +12,12 @@ scripts_paths:
 coms_paths:
   # Training paths
   delete_dag: 'MLOps_Airflow/shared_volume/coms/delete_dag.sh'
+  pause_dag: 'MLOps_Airflow/shared_volume/coms/pause_dag.sh'
+  unpause_dag: 'MLOps_Airflow/shared_volume/coms/unpause_dag.sh'
   check_dag_exists: 'MLOps_Airflow/shared_volume/coms/check_dag_exists.sh'
   trigger_train: 'MLOps_Airflow/shared_volume/coms/trigger_train.sh'
   check_train_run_status: 'MLOps_Airflow/shared_volume/coms/check_train_run_status.sh'
+  pause_dag_info: 'MLOps_Airflow/shared_volume/coms/pause_dag_info.json'
   train_dag_info: 'MLOps_Airflow/shared_volume/coms/train_dag_info.json'
   train_run_info: 'MLOps_Airflow/shared_volume/coms/train_run_info.json'
   train_run_status: 'MLOps_Airflow/shared_volume/coms/train_run_status.json'
@@ -25,6 +28,5 @@ coms_paths:
   validation_run_info: 'MLOps_Airflow/shared_volume/coms/validation_run_info.json'
   validation_run_status: 'MLOps_Airflow/shared_volume/coms/validation_run_status.json'
   dag_validation_runs: 'MLOps_Airflow/shared_volume/coms/dag_validation_runs.json'
-
   # Error paths
   error: 'MLOps_Airflow/shared_volume/coms/error.json'
