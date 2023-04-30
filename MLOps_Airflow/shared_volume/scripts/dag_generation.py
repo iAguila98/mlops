@@ -79,8 +79,9 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
             # When the DAG is detected at the first time, it is an error caused by incomplete removal.
             if x == 0:
                 ghost_error = True
-            else:
-                break
+
+            # Break FOR loop
+            break
 
     # Now we can trigger the DAG manually and save the dag run information
     file_ = open(coms_paths['train_run_info'], 'w')

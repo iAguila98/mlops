@@ -77,12 +77,13 @@ for model in trained_models:
     model_info = pickle.load(open(models_paths['models_repository'] + '/' + model, 'rb'))
     descriptions.append(str(model_info))
 
-    try:
-        # Execute shell scripts that gets the basic information of the DAG
-        file_ = open(coms_paths['pause_dag_info'], 'w')
-        p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
-        p.wait()  # Waits until the subprocess is finished
+    # Execute shell scripts that gets the basic information of the DAG
+    file_ = open(coms_paths['pause_dag_info'], 'w')
+    p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
+    p.wait()  # Waits until the subprocess is finished
 
+    # Try to read the pause_dag_info from the json. If there is an error, it is due to the connection with Airflow
+    try:
         # Add pause information in the list
         f = open(coms_paths['pause_dag_info'])
         info = json.load(f)
@@ -90,6 +91,8 @@ for model in trained_models:
 
     except:
         st.error('There is no connection with Airflow.', icon="🚨")
+        # Delete json file of pause/unpause info
+        os.remove(coms_paths['pause_dag_info'])
         st.stop()
 
 # Delete json file of pause/unpause info
@@ -174,7 +177,7 @@ if delete_button:
             st.info('Airflow can take a few minutes to fully delete the DAG.', icon="ℹ️")
 
             # Give time to the user to read the messages before updating the selectbox
-            time.sleep(4)
+            time.sleep(5)
 
             # Rerun the page to update the selectbox
             st.experimental_rerun()
@@ -213,7 +216,7 @@ if pause_train_button:
     else:
         raise Exception('Situation not expected.')
 
-
+# Refresh streamlit page
 if refresh_button:
     st.empty()
 

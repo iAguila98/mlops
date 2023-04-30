@@ -49,6 +49,30 @@ def get_models_table(h_data):
     st.table(rows_df)
 
 
+def check_airflow_connection():
+    """
+
+    Returns
+    -------
+
+    """
+    # Execute trigger to check whether there is connection with Airflow
+    file = open(coms_paths['train_dag_info'], 'w')
+    pr = subprocess.Popen([coms_paths['check_dag_exists'], model_name], stdout=file)
+    pr.wait()  # Waits until the subprocess is finished
+
+    # Try to read the train_dag_info from the json. If there is an error, it is due to the connection with Airflow
+    try:
+        # Check the status of the DAG. If it is 404 it means that it is still not created
+        f = open(coms_paths['train_dag_info'])
+        info = json.load(f)
+        os.remove(coms_paths['train_dag_info'])
+
+    except:
+        st.error('There is no connection with Airflow.', icon="🚨")
+        os.remove(coms_paths['train_dag_info'])
+        st.stop()
+
 ########################################################################################################################
 
 # Web configuration
@@ -194,8 +218,13 @@ with cols[3]:
 with cols[4]:
     pass
 
+
 # Define the 'launch training' button and what it should execute
 if train_button:
+
+    # Execute function to check if there is connection with Airflow
+    check_airflow_connection()
+
     # Initialize second try variable, useful to inform the user properly
     second_try = False
 

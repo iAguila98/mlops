@@ -131,10 +131,18 @@ if evaluate_button:
         p = subprocess.Popen(coms_paths['trigger_validation'], stdout=file_)
         p.wait()  # Waits until the subprocess is finished
 
-        # Read the dag_run_id from the json created when the trigger is performed
-        f = open(coms_paths['validation_run_info'])
-        data = json.load(f)
-        st.session_state.validation_run_id = data['dag_run_id']
+        # Try to read the dag_run_id from the json. If there is an error, it is due to the connection with Airflow
+        try:
+            # Read the dag_run_id from the json created when the trigger is performed
+            f = open(coms_paths['validation_run_info'])
+            data = json.load(f)
+            st.session_state.validation_run_id = data['dag_run_id']
+
+        except:
+            st.error('There is no connection with Airflow.', icon="🚨")
+            # Delete json file
+            os.remove(coms_paths['validation_run_info'])
+            st.stop()
 
         # Delete the json that contains the dag run id, used to check the status of the run
         os.remove(coms_paths['validation_run_info'])

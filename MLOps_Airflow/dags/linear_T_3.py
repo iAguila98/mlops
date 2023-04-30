@@ -45,7 +45,7 @@ def train_model(eval_path, train_path, results_path, models_path):
     New file of the trained model saved in the model directory. (.sav)
     """
     # Define the model according to the model type selected by the user
-    model_name = 'linear_T_2'
+    model_name = 'linear_T_3'
     model_type = model_name.split('_')[0]
 
     # Initialize the possible string values related to the max_features hyperparameter
@@ -55,7 +55,7 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the linear regression model
     if model_type == 'linear':
-        model = LinearRegression(fit_intercept=True, n_jobs=2)
+        model = LinearRegression(fit_intercept=True, n_jobs=3)
 
     # For the decision tree regressor model
     elif model_type == 'decision':
@@ -82,7 +82,7 @@ def train_model(eval_path, train_path, results_path, models_path):
            results['val_date'],
            train_date,
            True,
-           2,
+           3,
            np.nan,
            np.nan,
            np.nan,
@@ -115,7 +115,7 @@ default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id='linear_T_2',
+dag = DAG(dag_id='linear_T_3',
           description='DAG that will get triggered weekly to train the correspondent model.',
           schedule='0 0 * * 0',
           default_args=default_args,
