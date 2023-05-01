@@ -71,7 +71,7 @@ def train_model(eval_path, train_path, results_path, models_path):
 data_path = '/MLOps_Airflow/shared_volume/old_preprocessed_data.csv'
 eval_path = '/MLOps_Airflow/shared_volume/test_data.csv'
 train_path = '/MLOps_Airflow/shared_volume/train_data.csv'
-results_path = '/MLOps_Airflow/shared_volume/historical_validation.csv'
+results_path = '/MLOps_Airflow/shared_volume/historical_dataset.csv'
 models_path = '/MLOps_Airflow/shared_volume/models/'
 
 get_train_df(data_path, train_path)

@@ -8,16 +8,20 @@ from datetime import datetime, timedelta
 
 def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
     """
+    Generates new rows of data according to the last day batch of data. This function has the role of simulating
+    the entrance of new real data to be more faithful to a real situation. The new rows of data are not real, since the
+    values of some columns are randomly obtained between a range of numbers. It has been done in a justified and logical
+    way.
 
     Parameters
     ----------
-    data_batch_path
-    events_dict_path
-    snaps_dict_path
+    data_batch_path: Path where the new data batch is saved. (str)
+    events_dict_path: Path where the events of a year are saved. (str)
+    snaps_dict_path: Path where the snaps of a year are saved. (str)
 
     Returns
     -------
-
+    new_data: New generated batch of data. (DataFrame)
     """
     data_batch = pd.read_csv(data_batch_path)
 
@@ -73,15 +77,18 @@ def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
 
 def new_events(new_data, events_dict_path):
     """
+    Function used within the generate_data function in order to complete certain columns, specifically those related to
+    the events of the year. The function consists of consulting the dictionary of events of a calendar year, and
+    assigning the corresponding event to the corresponding day of the new batch of data.
 
     Parameters
     ----------
-    new_data
-    events_dict_path
+    new_data: New generated batch of data. (DataFrame)
+    events_dict_path: Path where the events of a year are saved. (str)
 
     Returns
     -------
-
+    new_data: Updated new generated batch of data. (DataFrame)
     """
     with open(events_dict_path, 'rb') as f:
         year_events_dict = pickle.load(f)
@@ -101,15 +108,19 @@ def new_events(new_data, events_dict_path):
 
 def new_snaps(new_data, snaps_dict_path):
     """
+    Function used within the generate_data function in order to complete certain columns, specifically those related to
+    the snaps of the year. The snap attributes indicate whether the stores allow purchases with snap food stamps on
+    that day. The function consists of consulting the dictionary of snaps of a calendar year, and assigning the
+    corresponding value to the corresponding day of the new batch of data.
 
     Parameters
     ----------
-    new_data
-    snaps_dict_path
+    new_data: New generated batch of data. (DataFrame)
+    snaps_dict_path: Path where the snaps of a year are saved. (str)
 
     Returns
     -------
-
+    new_data: Updated new generated batch of data. (DataFrame)
     """
     with open(snaps_dict_path, 'rb') as f:
         year_snaps_dict = pickle.load(f)

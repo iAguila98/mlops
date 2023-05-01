@@ -20,26 +20,25 @@ default_args = {
 
 
 @provide_session
-def _get_execution_date_of_dag_datasets(exec_date, session=None, **kwargs):
+def _get_execution_date_of_dag_datasets(*args, session=None, **kwargs):
     """
-    The execution date of a specific DAG is obtained. It is used to build an ExternalTaskSensor which consists of
-    waiting until a specific DAG has completed its execution before executing a different DAG. The @provide_session
-    allows the function to feed parameters at runtime.
+    The execution date of the last run from a specific DAG is obtained. It is used to build an ExternalTaskSensor
+    which consists of waiting until a specific DAG has completed its execution before executing a different DAG.
+    The @provide_session allows the function to feed parameters at runtime.
 
     Parameters
     ----------
-    exec_date  --> WHY?
-    session
-    kwargs   --> WHY?
+    args: Required parameter to properly create the function to be called in the ExternalTaskSensor.
+    session: Session provided by @provide_session.
+    kwargs: Required parameter to properly create the function to be called in the ExternalTaskSensor.
 
     Returns
     -------
-    The last execution date of the desired DAG.
-
+    The date of the last execution correspondent to the desired DAG (task to which it has to wait).
     """
-    dag_datasets_last_run = get_last_dagrun(
-        'dataset_creation', session)
-    logging.info('Last dataset run: ', dag_datasets_last_run.execution_date)
+    # Get the last run from the dataset_creation DAG
+    dag_datasets_last_run = get_last_dagrun('dataset_creation', session=session)
+
     return dag_datasets_last_run.execution_date
 
 
@@ -64,7 +63,7 @@ def evaluate(models_path, val_path, results_path):
     - hyperparameters: values of the hyperparameters according to the model.
     - mae, wmape, rmse, tweedie: validation metrics. (float)
     """
-    # From the historical_validation.csv, get the date of the last training of each model
+    # From the historical_dataset.csv, get the date of the last training of each model
     historic_df = pd.read_csv(results_path)
     last_train_date_df = historic_df.sort_values('train_date').groupby('model').tail(1)
     last_train_date = {}
@@ -80,23 +79,23 @@ def evaluate(models_path, val_path, results_path):
         model_name = model_file.split('.')[0]
         results = validation(model, model_name, val_path)
 
-        # Get additional column values to write historical_validation.csv
+        # Get additional column values to write historical_dataset.csv
         train_date = last_train_date[model_name]
         results['train_date'] = train_date
         results['train_requested'] = False
 
-        # Write the results in the historical_validation.csv
+        # Write the results in the historical_dataset.csv
         with open(results_path, 'a') as f_object:
             dictwriter_object = DictWriter(f_object, fieldnames=historic_df.columns)
             dictwriter_object.writerow(results)
 
 
 with DAG(dag_id='test_models',
-        description='DAG that will get trigger daily to validate the active models.',
-        schedule='0 0 * * *',
-        default_args=default_args,
-        start_date=datetime(2023, 1, 1),
-        catchup=False
+         description='DAG that will get trigger daily to validate the active models.',
+         schedule='0 0 * * *',
+         default_args=default_args,
+         start_date=datetime(2023, 1, 1),
+         catchup=False
 ) as dag:
 
     dataset_sensor = ExternalTaskSensor(
@@ -113,7 +112,7 @@ with DAG(dag_id='test_models',
         op_kwargs={
             'models_path': './shared_volume/models/',
             'val_path': './shared_volume/data/test_data.csv',
-            'results_path': './shared_volume/data/historical_validation.csv'
+            'results_path': './shared_volume/data/historical_dataset.csv'
         }
     )
 

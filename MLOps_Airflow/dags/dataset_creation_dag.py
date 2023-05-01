@@ -16,17 +16,19 @@ default_args = {
 
 def add_data(data_path, data_batch_path, events_dict_path, snaps_dict_path):
     """
+    Generates new rows and adds them to the data, which is saved in a .csv file. In addition, it saves this new batch
+    of data in another file so that you can later create more data from it, avoiding reading the entire data.
 
     Parameters
     ----------
-    data_path
-    data_batch_path
-    events_dict_path
-    snaps_dict_path
+    data_path: Path where the data file is saved. (str)
+    data_batch_path: Path where the new data batch is saved. (str)
+    events_dict_path: Path where the events of a year are saved. (str)
+    snaps_dict_path: Path where the snaps of a year are saved. (str)
 
     Returns
     -------
-
+    Updates the original data and the new batch of data.
     """
     # Generate new batch of data and save it to use it as base for the next batch
     new_batch_data = generate_data(data_batch_path, events_dict_path, snaps_dict_path)
@@ -43,17 +45,20 @@ def add_data(data_path, data_batch_path, events_dict_path, snaps_dict_path):
 
 def preprocess_split_data(data_path, pre_data_path, train_path, test_path):
     """
+    Preprocess the updated data, taking into account the old data, which is required to perform some of the
+    preprocessing techniques. After preprocessing, the dataset is split into train and test sets. For the test set the
+    last calendar year of the data is selected and for the train set the remaining data is selected.
 
     Parameters
     ----------
-    data_path
-    pre_data_path
-    train_path
-    test_path
+    data_path: Path where the data file is saved. (str)
+    pre_data_path: Path where the preprocessed data file is saved. (str)
+    train_path: Path where the train data file is saved. (str)
+    test_path: Path where the test data file is saved. (str)
 
     Returns
     -------
-
+    New preprocessed data and train-test sets.
     """
     # Preprocess the data taking into account the new batch
     new_data = pd.read_csv(data_path)

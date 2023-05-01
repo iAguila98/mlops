@@ -9,8 +9,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class FillSellPrice(BaseEstimator, TransformerMixin):
     """
-        Fill sell_price Nan using backward fill without taking into account special event prices.
-        Afterwards, event days prices are filled using the mean of the product price.
+    Fill sell_price Nan using backward fill without taking into account special event prices.
+    Afterward, event days prices are filled using the mean of the product price.
     """
     def __init__(self):
         self.cat_attributes = ['event_name_1', 'event_type_1', 'event_name_2', 'event_type_2']
@@ -28,13 +28,13 @@ class FillSellPrice(BaseEstimator, TransformerMixin):
 
 class CategoricalEncoder(BaseEstimator, TransformerMixin):
     """
-        This class applies OneHotEncoding (get_dummies) to a specific categorical attributes with low number of 
-        categories. After that, it combines the event type 1 and event type 2 columns that are common (Religious, 
-        Cultural and NoEvent). The National and Sporting type only exists in type_1, so they will be just renamed.
-        NoEvent is the only one resulting from an AND logic, since both types should be NoEvent to have a 1 in 
-        the new column. For the rest of types, we use the OR logic.
+    This class applies OneHotEncoding (get_dummies) to a specific categorical attributes with low number of
+    categories. After that, it combines the event type 1 and event type 2 columns that are common (Religious,
+    Cultural and NoEvent). The National and Sporting type only exists in type_1, so they will be just renamed.
+    NoEvent is the only one resulting from an AND logic, since both types should be NoEvent to have a 1 in
+    the new column. For the rest of types, we use the OR logic.
 
-        For the categorical attributes with a bigger number of categories, the class applies TargetEncoder.
+    For the categorical attributes with a bigger number of categories, the class applies TargetEncoder.
     """
 
     def __init__(self):
@@ -89,9 +89,9 @@ class CategoricalEncoder(BaseEstimator, TransformerMixin):
 
 class AddAutoLag(BaseEstimator, TransformerMixin):
     """
-        Class that adds new columns with auto lag on the sales number and mean sales.
-        Also, it adds a 28-day shift in the sales column as the model should predict
-        the sales 28 days from today.
+    Class that adds new columns with auto lag on the sales number and mean sales.
+    Also, it adds a 28-day shift in the sales column as the model should predict
+    the sales 28 days from today.
     """
 
     def __init__(self, lags=(5, 10, 15, 20, 28),
@@ -125,7 +125,7 @@ class AddAutoLag(BaseEstimator, TransformerMixin):
 
 class SelectImportantFeatures(BaseEstimator, TransformerMixin):
     """
-        This class selects the opposite attributes that the ones indicated by the user.
+    This class selects the opposite attributes that the ones indicated by the user.
     """
 
     def __init__(self, attributes):
@@ -141,7 +141,7 @@ class SelectImportantFeatures(BaseEstimator, TransformerMixin):
 
 class DropNa(BaseEstimator, TransformerMixin):
     """
-        This class performs a drop of all rows with any NaN values that remains in the dataset.
+    This class performs a drop of all rows with any NaN values that remains in the dataset.
     """
     def fit(self, X, y=None):
         return self
@@ -154,7 +154,7 @@ class DropNa(BaseEstimator, TransformerMixin):
 
 def preprocessing_pipeline(dataset):
     """
-        This function builds the preprocessing pipeline with the previous classes.
+    This function builds the preprocessing pipeline with the previous classes.
     """
     del_attr = ['id', 'item_id', 'dept_id', 'store_id', 'd', 'wm_yr_wk', 'weekday', 'year']
 

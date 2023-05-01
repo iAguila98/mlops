@@ -18,10 +18,25 @@ from scripts.validation_script import validation
 
 
 @provide_session
-def _get_execution_date_of_dag_datasets(exec_date, session=None, **kwargs):
-    dag_datasets_last_run = get_last_dagrun(
-        'dataset_creation', session)
-    logging.info('Last dataset run: ', dag_datasets_last_run.execution_date)
+def _get_execution_date_of_dag_datasets(*args, session=None, **kwargs):
+    """
+    The execution date of the last run from a specific DAG is obtained. It is used to build an ExternalTaskSensor
+    which consists of waiting until a specific DAG has completed its execution before executing a different DAG.
+    The @provide_session allows the function to feed parameters at runtime.
+
+    Parameters
+    ----------
+    args: Required parameter to properly create the function to be called in the ExternalTaskSensor.
+    session: Session provided by @provide_session.
+    kwargs: Required parameter to properly create the function to be called in the ExternalTaskSensor.
+
+    Returns
+    -------
+    The date of the last execution correspondent to the desired DAG (task to which it has to wait).
+    """
+    # Get the last run from the dataset_creation DAG
+    dag_datasets_last_run = get_last_dagrun('dataset_creation', session=session)
+
     return dag_datasets_last_run.execution_date
 
 
@@ -45,7 +60,7 @@ def train_model(eval_path, train_path, results_path, models_path):
     New file of the trained model saved in the model directory. (.sav)
     """
     # Define the model according to the model type selected by the user
-    model_name = 'linear_F_-1'
+    model_name = 'linear_T_1'
     model_type = model_name.split('_')[0]
 
     # Initialize the possible string values related to the max_features hyperparameter
@@ -55,7 +70,7 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the linear regression model
     if model_type == 'linear':
-        model = LinearRegression(fit_intercept=False, n_jobs=-1)
+        model = LinearRegression(fit_intercept=True, n_jobs=1)
 
     # For the decision tree regressor model
     elif model_type == 'decision':
@@ -81,8 +96,8 @@ def train_model(eval_path, train_path, results_path, models_path):
     row = [model_name,
            results['val_date'],
            train_date,
-           False,
-           -1,
+           True,
+           1,
            np.nan,
            np.nan,
            np.nan,
@@ -96,7 +111,7 @@ def train_model(eval_path, train_path, results_path, models_path):
            results['tweedie'],
            False]
 
-    # Adapt possible None values to strings in order to write them in the historical_validation.csv
+    # Adapt possible None values to strings in order to write them in the historical_dataset.csv
     for idx, el in enumerate(row):
         if el is None:
             el = 'None'
@@ -115,11 +130,11 @@ default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id='linear_F_-1',
+dag = DAG(dag_id='linear_T_1',
           description='DAG that will get triggered weekly to train the correspondent model.',
           schedule='0 0 * * 0',
           default_args=default_args,
-          start_date=datetime(2023, 4, 1),
+          start_date=datetime(2023, 5, 1),
           catchup=False)
 
 with dag:
@@ -137,7 +152,7 @@ with dag:
         op_kwargs={
             'eval_path': './shared_volume/data/test_data.csv',
             'train_path': './shared_volume/data/train_data.csv',
-            'results_path': './shared_volume/data/historical_validation.csv',
+            'results_path': './shared_volume/data/historical_dataset.csv',
             'models_path': './shared_volume/models/'
         }
     )

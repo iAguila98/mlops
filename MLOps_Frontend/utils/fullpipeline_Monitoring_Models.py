@@ -73,7 +73,7 @@ with st.sidebar:
 
 # Visualize historical graph validation
 st.subheader('Historical Graph')
-historical = pd.read_csv('MLOps_Airflow/shared_volume/historical_validation.csv')
+historical = pd.read_csv('MLOps_Airflow/shared_volume/historical_dataset.csv')
 column_metrics = ['mae', 'wmape', 'rmse', 'tweedie']
 tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
 
@@ -95,7 +95,7 @@ if button:
 
     # Add a new row to the csv (historical validation dataset)
     new_row = [model, datetime.now(), mae, wmape, rmse, tweedie]
-    with open('MLOps_Frontend/historical_validation.csv', 'a') as f_object:
+    with open('MLOps_Frontend/historical_dataset.csv', 'a') as f_object:
         writer(f_object).writerow(new_row)
         f_object.close()
 

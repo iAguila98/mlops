@@ -74,38 +74,46 @@ descriptions = []
 pause_info = []
 trained_models = os.listdir(models_paths['models_repository'])
 
-# For each model in the model repository
-for model in trained_models:
+# When there are trained models, the table can be built
+if len(trained_models) != 0:
 
-    # Read the pickle file and save the information
-    model_info = pickle.load(open(models_paths['models_repository'] + '/' + model, 'rb'))
-    descriptions.append(str(model_info))
+    # For each model in the model repository
+    for model in trained_models:
 
-    # Execute shell scripts that gets the basic information of the DAG
-    file_ = open(coms_paths['pause_dag_info'], 'w')
-    p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
-    p.wait()  # Waits until the subprocess is finished
+        # Read the pickle file and save the information
+        model_info = pickle.load(open(models_paths['models_repository'] + '/' + model, 'rb'))
+        descriptions.append(str(model_info))
 
-    # Try to read the pause_dag_info from the json. If there is an error, it is due to the connection with Airflow
-    try:
-        # Add pause information in the list
-        f = open(coms_paths['pause_dag_info'])
-        info = json.load(f)
-        pause_info.append(info['is_paused'])
+        # Execute shell scripts that gets the basic information of the DAG
+        file_ = open(coms_paths['pause_dag_info'], 'w')
+        p = subprocess.Popen([coms_paths['check_dag_exists'], model[:-4]], stdout=file_)
+        p.wait()  # Waits until the subprocess is finished
 
-    except:
-        st.error('There is no connection with Airflow.', icon="🚨")
-        # Delete json file of pause/unpause info
-        os.remove(coms_paths['pause_dag_info'])
-        st.stop()
+        # Try to read the pause_dag_info from the json. If there is an error, it is due to the connection with Airflow
+        try:
+            # Add pause information in the list
+            f = open(coms_paths['pause_dag_info'])
+            info = json.load(f)
+            pause_info.append(info['is_paused'])
 
-# Delete json file of pause/unpause info
-os.remove(coms_paths['pause_dag_info'])
+        except:
+            st.error('There is no connection with Airflow.', icon="🚨")
+            # Delete json file of pause/unpause info
+            os.remove(coms_paths['pause_dag_info'])
+            st.stop()
 
-# Show a table with information about the trained models
-models_df = pd.DataFrame({'Model File': trained_models, 'Description': descriptions, 'Pause': pause_info})
-models_df.set_index('Model File', inplace=True)
-st.dataframe(models_df, use_container_width=True)
+    # Delete json file of pause/unpause info
+    os.remove(coms_paths['pause_dag_info'])
+
+    # Show a table with information about the trained models
+    models_df = pd.DataFrame({'Model File': trained_models, 'Description': descriptions, 'Pause': pause_info})
+    models_df.set_index('Model File', inplace=True)
+    st.dataframe(models_df, use_container_width=True)
+
+# When there aren't trained models, the table cannot be built
+else:
+    st.warning('There are no trained models, the table cannot be built.', icon="⚠️")
+    st.stop()
 
 # Define refresh button to update the page and therefore, the table.
 refresh_button = st.button('REFRESH', help='Refresh the page to update the table.')
@@ -128,69 +136,64 @@ with cols[3]:
 
 # When pressing the delete button
 if delete_button:
-    # When there are models to select
-    if selected_model is not None:
 
-        # Request information about the runs of the validation DAG
-        file_ = open(coms_paths['dag_validation_runs'], 'w')
-        p = subprocess.Popen(coms_paths['list_dag_validation_runs'], stdout=file_)
+    # Request information about the runs of the validation DAG
+    file_ = open(coms_paths['dag_validation_runs'], 'w')
+    p = subprocess.Popen(coms_paths['list_dag_validation_runs'], stdout=file_)
+    p.wait()  # Waits until the subprocess is finished
+
+    # Read the information returned
+    f = open(coms_paths['dag_validation_runs'])
+    runs_info = json.load(f)
+
+    # If the model is involved in an execution of the validation DAG, then wait until it's finished
+    if runs_info['dag_runs'][-1]['state'] == 'running' or runs_info['dag_runs'][-1]['state'] == 'queued':
+
+        # Inform the user
+        st.warning('The model is involved in the execution of the evaluation of all models. Please, try again in a '
+                   'few minutes.', icon="⚠️")
+
+        # Remove the json file
+        os.remove(coms_paths['dag_validation_runs'])
+
+        # Stop the streamlit page execution
+        st.stop()
+
+    # If the model is not involved in an execution of the validation DAG, delete it
+    else:
+
+        # Remove model in the model repository and the correspondent DAG in python
+        os.remove(models_paths['models_repository'] + '/' + selected_model)
+        os.remove(dags_paths + '/' + selected_model[:-4] + '.py')
+
+        # Remove the DAG and its tasks in Airflow
+        p = subprocess.Popen([coms_paths['delete_dag'], selected_model[:-4]])
         p.wait()  # Waits until the subprocess is finished
 
-        # Read the information returned
-        f = open(coms_paths['dag_validation_runs'])
-        runs_info = json.load(f)
+        # Delete the correspondent rows in the historical_dataset.csv
+        historical = pd.read_csv(data_paths['historical_dataset'])
+        historical = historical.loc[historical['model'] != selected_model[:-4]]
+        historical.to_csv(data_paths['historical_dataset'], index=False)
 
-        # If the model is involved in an execution of the validation DAG, then wait until it's finished
-        if runs_info['dag_runs'][-1]['state'] == 'running' or runs_info['dag_runs'][-1]['state'] == 'queued':
+        # Remove the json file
+        os.remove(coms_paths['dag_validation_runs'])
 
-            # Inform the user
-            st.warning('The model is involved in the execution of the evaluation of all models. Please, try again in a '
-                       'few minutes.', icon="⚠️")
+        # Inform the user that Airflow takes a few minutes to fully delete the DAG
+        st.success('Correspondent files of the model has been successfully deleted.', icon="✅")
+        st.info('Airflow can take a few minutes to fully delete the DAG.', icon="ℹ️")
 
-            # Remove the json file
-            os.remove(coms_paths['dag_validation_runs'])
+        # Give time to the user to read the messages before updating the selectbox
+        time.sleep(5)
 
-            # Stop the streamlit page execution
-            st.stop()
-
-        # If the model is not involved in an execution of the validation DAG, delete it
-        else:
-
-            # Remove model in the model repository and the correspondent DAG in python
-            os.remove(models_paths['models_repository'] + '/' + selected_model)
-            os.remove(dags_paths + '/' + selected_model[:-4] + '.py')
-
-            # Remove the DAG and its tasks in Airflow
-            p = subprocess.Popen([coms_paths['delete_dag'], selected_model[:-4]])
-            p.wait()  # Waits until the subprocess is finished
-
-            # Delete the correspondent rows in the historical_validation.csv
-            historical = pd.read_csv(data_paths['historical_dataset'])
-            historical = historical.loc[historical['model'] != selected_model[:-4]]
-            historical.to_csv(data_paths['historical_dataset'], index=False)
-
-            # Remove the json file
-            os.remove(coms_paths['dag_validation_runs'])
-
-            # Inform the user that Airflow takes a few minutes to fully delete the DAG
-            st.success('Correspondent files of the model has been successfully deleted.', icon="✅")
-            st.info('Airflow can take a few minutes to fully delete the DAG.', icon="ℹ️")
-
-            # Give time to the user to read the messages before updating the selectbox
-            time.sleep(5)
-
-            # Rerun the page to update the selectbox
-            st.experimental_rerun()
-
-    # When there aren't models to select
-    else:
-        st.error('There are no trained models.', icon="🚨")
+        # Rerun the page to update the selectbox
+        st.experimental_rerun()
 
 
+# When pressing the pause/activate button
 if pause_train_button:
 
     # Read paused model info
-    paused = models_df[models_df['Model File'] == selected_model]['Pause'].values[0]
+    paused = models_df[models_df.index == selected_model]['Pause'].values[0]
 
     # If the model is not paused, then pause it
     if not paused:
@@ -216,7 +219,8 @@ if pause_train_button:
     else:
         raise Exception('Situation not expected.')
 
-# Refresh streamlit page
+
+# When pressing the refresh button, it refreshes the streamlit page
 if refresh_button:
     st.empty()
 

@@ -1,7 +1,7 @@
 dags_paths: 'MLOps_Airflow/dags'
 
 data_paths:
-  historical_dataset: 'MLOps_Airflow/shared_volume/data/historical_validation.csv'
+  historical_dataset: 'MLOps_Airflow/shared_volume/data/historical_dataset.csv'
 
 models_paths:
   models_repository: 'MLOps_Airflow/shared_volume/models'

@@ -112,7 +112,7 @@ def create_dag(dag_id, schedule, default_args, hyperparameters):
             op_kwargs={
                 'eval_path': './shared_volume/test_data.csv',
                 'train_path': './shared_volume/train_data.csv',
-                'results_path': './shared_volume/historical_validation.csv',
+                'results_path': './shared_volume/historical_dataset.csv',
                 'models_path': './shared_volume/models/'
             }
         )
@@ -123,8 +123,8 @@ def create_dag(dag_id, schedule, default_args, hyperparameters):
 
 
 # Reading the historical validation dataset
-data = pd.read_csv('./shared_volume/historical_validation.csv')
-#data = pd.read_csv('/home/iagoaguila/Projects/MLOps_Project/mlops/MLOps_Airflow/shared_volume/historical_validation.csv')
+data = pd.read_csv('./shared_volume/historical_dataset.csv')
+#data = pd.read_csv('/home/iagoaguila/Projects/MLOps_Project/mlops/MLOps_Airflow/shared_volume/historical_dataset.csv')
 filtered_data = data[data['train_requested']==True]
 
 # Setting the parameters of the create_dag function
@@ -143,8 +143,8 @@ for i in range(initial_hyperparameter, last_hyperparameter):
 
 # We have to delete the train_requested=TRUE row after reading it.
 base_df = data[data['train_requested']!=True].set_index('model')
-#base_df.to_csv('/home/iagoaguila/Projects/MLOps_Project/mlops/MLOps_Airflow/shared_volume/historical_validation.csv')
-#base_df.to_csv('./shared_volume/historical_validation.csv')
+#base_df.to_csv('/home/iagoaguila/Projects/MLOps_Project/mlops/MLOps_Airflow/shared_volume/historical_dataset.csv')
+#base_df.to_csv('./shared_volume/historical_dataset.csv')
 
 
 # if dag_id already exists it should return an error: AirflowDagDuplicatedIdException
