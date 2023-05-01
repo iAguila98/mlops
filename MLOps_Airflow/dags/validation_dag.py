@@ -18,8 +18,25 @@ default_args = {
     'owner': 'Iago'
 }
 
+
 @provide_session
-def _get_execution_date_of_dag_datasets(exec_date, session=None,  **kwargs):
+def _get_execution_date_of_dag_datasets(exec_date, session=None, **kwargs):
+    """
+    The execution date of a specific DAG is obtained. It is used to build an ExternalTaskSensor which consists of
+    waiting until a specific DAG has completed its execution before executing a different DAG. The @provide_session
+    allows the function to feed parameters at runtime.
+
+    Parameters
+    ----------
+    exec_date  --> WHY?
+    session
+    kwargs   --> WHY?
+
+    Returns
+    -------
+    The last execution date of the desired DAG.
+
+    """
     dag_datasets_last_run = get_last_dagrun(
         'dataset_creation', session)
     logging.info('Last dataset run: ', dag_datasets_last_run.execution_date)
