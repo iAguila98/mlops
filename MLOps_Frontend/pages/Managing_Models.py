@@ -12,14 +12,18 @@ import streamlit as st
 @st.cache_resource
 def read_config_yaml(yaml_path):
     """
+    Read the yaml fields that store the paths used in this python file.
 
     Parameters
     ----------
-    yaml_path
+    yaml_path: Path where the yaml file is saved. (str)
 
     Returns
     -------
-
+    dags_paths: File paths saved in the yaml file that are related to the dags. (str)
+    data_paths: File paths saved in the yaml file that are related to the data. (str)
+    models_paths: File paths saved in the yaml file that are related to the models. (str)
+    coms_paths: File paths saved in the yaml file that are related to the communications. (str)
     """
     with open(yaml_path) as yaml_file:
         config = yaml.load(yaml_file, Loader=yaml.FullLoader)
@@ -28,7 +32,7 @@ def read_config_yaml(yaml_path):
         models_paths = config['models_paths']
         coms_paths = config['coms_paths']
 
-    return models_paths, data_paths, dags_paths, coms_paths
+    return dags_paths, data_paths, models_paths, coms_paths
 
 
 ########################################################################################################################
@@ -62,7 +66,7 @@ st.write('Add description')
 ########################################################################################################################
 
 # Read paths from the YAML
-models_paths, data_paths, dags_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
+dags_paths, data_paths, models_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
 
 # Read trained models and save its descriptions
 st.subheader('Models Repository Table')
@@ -100,7 +104,11 @@ os.remove(coms_paths['pause_dag_info'])
 
 # Show a table with information about the trained models
 models_df = pd.DataFrame({'Model File': trained_models, 'Description': descriptions, 'Pause': pause_info})
-st.table(models_df)
+models_df.set_index('Model File', inplace=True)
+st.dataframe(models_df, use_container_width=True)
+
+# Define refresh button to update the page and therefore, the table.
+refresh_button = st.button('REFRESH', help='Refresh the page to update the table.')
 
 # Create select box of trained models
 st.subheader('Manage Models')
@@ -111,20 +119,12 @@ selected_model = st.selectbox('Select Model', os.listdir(models_paths['models_re
 
 # Define the buttons of the page
 cols = st.columns(5)
-with cols[0]:
-    refresh_button = st.button('REFRESH', help='Refresh the page.')
 with cols[1]:
-    pass
-with cols[2]:
     pause_train_button = st.button('PAUSE/ACTIVATE CT', help='Pauses the Continuous Training, i.e., the Airflow DAG '
                                                              'that trains the model.')
 with cols[3]:
-    pass
-
-with cols[4]:
     delete_button = st.button('DELETE MODEL', help='Deletes model from model repository, historical dataset and '
                                                    'Airflow. Logs are not deleted.')
-
 
 # When pressing the delete button
 if delete_button:

@@ -11,14 +11,18 @@ import yaml
 @st.cache_resource
 def read_config_yaml(yaml_path):
     """
+    Read the yaml fields that store the paths used in this python file.
 
     Parameters
     ----------
-    yaml_path
+    yaml_path: Path where the yaml file is saved. (str)
 
     Returns
     -------
-
+    data_paths: File paths saved in the yaml file that are related to the data. (str)
+    models_paths: File paths saved in the yaml file that are related to the models. (str)
+    scripts_paths: File paths saved in the yaml file that are related to the scripts. (str)
+    coms_paths: File paths saved in the yaml file that are related to the communications. (str)
     """
     with open(yaml_path) as yaml_file:
         config = yaml.load(yaml_file, Loader=yaml.FullLoader)
