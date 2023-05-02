@@ -3,7 +3,7 @@ import shutil
 from datetime import datetime
 
 
-def create_dag(target_path, dag_id, hyperparameters):
+def create_dag(target_path, template_path, dag_id, hyperparameters):
     """
     Given the hyperparameters of a model, this function creates a DAG by using a defined template. The dag id
     and the hyperparameters of the model are arguments that replace spaces in the base template to create the final
@@ -23,9 +23,6 @@ def create_dag(target_path, dag_id, hyperparameters):
     input_dt = datetime.now().date()
     first = input_dt.replace(day=1)
     start_date = 'datetime(' + str(first).replace('-0', ', ') + ')'
-
-    # Define template
-    dag_template_file = 'MLOps_Airflow/shared_volume/scripts/dag_template.py'
 
     # Initialize all possible hyperparameters with 'np.nan' string
     all_hyper = []
@@ -58,7 +55,7 @@ def create_dag(target_path, dag_id, hyperparameters):
         raise Exception('Model name not implemented.')
 
     # Copy the template into the target path
-    shutil.copyfile(dag_template_file, target_path)
+    shutil.copyfile(template_path, target_path)
 
     # Replace the variables in the created file
     replacements = {'dag_id_model': "'"+dag_id+"'",

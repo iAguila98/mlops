@@ -29,7 +29,7 @@ base_df.to_csv(data_paths['historical_dataset'])
 # Setting the parameters of the create_dag function
 dag_id = filtered_data.iloc[0]['model']
 
-# Target path
+# Define paths
 dag_path = 'MLOps_Airflow/dags/' + dag_id + '.py'
 model_path = 'MLOps_Airflow/shared_volume/models/' + dag_id + '.sav'
 
@@ -45,7 +45,8 @@ if not os.path.exists(dag_path) and not os.path.exists(model_path):
         hyperparameters.append(filtered_data.iloc[0][i])
 
     # We create the dag (this will be executed automatically the webserver detects it)
-    create_dag(dag_path, dag_id, hyperparameters)
+    create_dag(target_path=dag_path, template_path=scripts_paths['template_path'],
+               dag_id=dag_id, hyperparameters=hyperparameters)
 
     # Wait until dag_id can be read. When this happens, it means that the DAG exists
     num_retries = 150

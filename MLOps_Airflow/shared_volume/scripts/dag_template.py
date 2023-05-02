@@ -13,8 +13,8 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 
-from scripts.train_script import train
-from scripts.validation_script import validation
+from MLOps_Airflow.dags.scripts.train_script import train
+from MLOps_Airflow.dags.scripts.validation_script import validation
 
 
 @provide_session

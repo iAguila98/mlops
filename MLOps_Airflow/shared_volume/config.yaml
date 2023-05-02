@@ -8,6 +8,7 @@ models_paths:
 
 scripts_paths:
   dag_generation: 'MLOps_Airflow/shared_volume/scripts/dag_generation.py'
+  template_path: 'MLOps_Airflow/shared_volume/scripts/dag_template.py'
 
 coms_paths:
   # Training paths
