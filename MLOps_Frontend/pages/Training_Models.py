@@ -34,10 +34,11 @@ def read_config_yaml(yaml_path):
     return data_paths, scripts_paths, coms_paths
 
 
-def get_models_table(h_data):
+def get_rows_df(h_data):
     """
-    Using the historical dataset provided as a parameter, a table is constructed that can be visualized by the user
-    in the dashboard.
+    Using the historical dataset provided as a parameter, a dataset is constructed that can be built into a table
+    that will be visualized by the user in the dashboard. The dataset includes information about the last registration
+    (row) of each trained model.
 
     Parameters
     ----------
@@ -64,8 +65,8 @@ def get_models_table(h_data):
     # Set index to model name
     rows_df.set_index('Model Name', inplace=True)
 
-    # Display the table
-    st.dataframe(rows_df)
+    # Return table dataframe
+    return rows_df
 
 
 def check_airflow_connection():
@@ -121,7 +122,8 @@ data_paths, scripts_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_v
 # Show a table with the last registration of each model type
 st.subheader('Trained Models Table')
 historical = pd.read_csv(data_paths['historical_dataset'])
-get_models_table(historical)
+table_dataframe = get_rows_df(historical)
+st.dataframe(table_dataframe)
 
 # Define refresh button to update the page and therefore the table
 refresh_button = st.button('REFRESH')

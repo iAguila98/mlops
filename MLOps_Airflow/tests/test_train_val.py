@@ -3,6 +3,8 @@ import re
 import time
 import unittest
 
+import numpy as np
+
 from sklearn.linear_model import LinearRegression
 
 from MLOps_Airflow.dags.scripts.train_script import train
@@ -17,8 +19,8 @@ class LinearModelTests(unittest.TestCase):
     def test_train(self):
         """
         The purpose of this function is to test the 'train' function used by the models train dags. In order to do this,
-        a new model is defined those running in the main code. After this, the train function is executed and the code
-        checks whether ......
+        a new model is defined to avoid using those running in the main code. After this, the train function is executed
+        and the code checks whether the initial state of the model changes after the training (success) or not (failed).
 
         Returns
         -------
@@ -39,11 +41,11 @@ class LinearModelTests(unittest.TestCase):
 
     def test_validation(self):
         """
-        The purpose of this function is to test the 'evaluate' task used by validation_dag.py. In order to do this,
-        new datasets are used so as not to affect those running in the main code. We execute the function where the
-        test dataset is obtained (get_test_df). Any model is trained with this same dataset and is saved to later
-        execute the function 'evaluate', which is the one to be tested. The results are saved in the historical test
-        dataset and checks if they have indeed been added (success) or not (failed).
+        The purpose of this function is to test the 'validation' function used in a task from the validation_dag.py. In
+        order to do this, a new model is defined and trained to avoid using those running in the main code. We execute
+        the function where the prediction is obtained (validation). The results are returned by the function and checked
+        checks in order to know if the prediction has been performed. Specifically, we check whether it returns the
+        metric values (success) or not (failed).
 
         Returns
         -------
@@ -54,11 +56,22 @@ class LinearModelTests(unittest.TestCase):
         model = LinearRegression(fit_intercept=True, n_jobs=1)
         model_name = 'linear_T_1'
 
+        # Train the model before validate it
+        trained_model, train_date = train(model=model, train_path=path2traindata)
+
         # Execute the function to be tested
-        validation(model=model, model_name=model_name, eval_path=path2testdata)
+        results = validation(model=trained_model, model_name=model_name, eval_path=path2testdata)
+        metrics = list(results)[-5:-1]
 
+        # Save each value metric from the results dictionary
+        values = []
+        for key in results:
+            if key in metrics:
+                values.append(results[key])
 
+        # Check if there are any nan in the metrics results
         time.sleep(1)
+        self.assertFalse(np.isnan(values).any())
 
 
 

@@ -34,7 +34,7 @@ def validation(model, model_name, eval_path):
     mae = round(mae_loss(predictions, test_y), 3)
     wmape = round(wmape_loss(predictions, test_y), 3)
     rmse = round(rmse_loss(predictions, test_y), 3)
-    tweedie = round(tweedie_loss(test_y, predictions), 3)
+    tweedie = round(tweedie_loss(predictions, test_y), 3)
 
     # Get the correspondent parameters of the model_name to save them in the variable 'results'
     parameters = get_parameters(model_name)
