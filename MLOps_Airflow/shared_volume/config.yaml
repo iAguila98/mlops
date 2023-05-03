@@ -22,12 +22,12 @@ coms_paths:
   train_dag_info: 'MLOps_Airflow/shared_volume/coms/train_dag_info.json'
   train_run_info: 'MLOps_Airflow/shared_volume/coms/train_run_info.json'
   train_run_status: 'MLOps_Airflow/shared_volume/coms/train_run_status.json'
-  # Validation paths
-  trigger_validation: 'MLOps_Airflow/shared_volume/coms/trigger_validation.sh'
-  check_validation_run_status: 'MLOps_Airflow/shared_volume/coms/check_validation_run_status.sh'
-  list_dag_validation_runs: 'MLOps_Airflow/shared_volume/coms/list_dag_validation_runs.sh'
-  validation_run_info: 'MLOps_Airflow/shared_volume/coms/validation_run_info.json'
-  validation_run_status: 'MLOps_Airflow/shared_volume/coms/validation_run_status.json'
-  dag_validation_runs: 'MLOps_Airflow/shared_volume/coms/dag_validation_runs.json'
+  # Evaluation paths
+  trigger_evaluation: 'MLOps_Airflow/shared_volume/coms/trigger_evaluation.sh'
+  check_evaluation_run_status: 'MLOps_Airflow/shared_volume/coms/check_evaluation_run_status.sh'
+  list_dag_evaluation_runs: 'MLOps_Airflow/shared_volume/coms/list_dag_evaluation_runs.sh'
+  evaluation_run_info: 'MLOps_Airflow/shared_volume/coms/evaluation_run_info.json'
+  evaluation_run_status: 'MLOps_Airflow/shared_volume/coms/evaluation_run_status.json'
+  dag_evaluation_runs: 'MLOps_Airflow/shared_volume/coms/dag_evaluation_runs.json'
   # Error paths
   error: 'MLOps_Airflow/shared_volume/coms/error.json'

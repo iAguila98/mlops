@@ -12,7 +12,8 @@ import streamlit as st
 @st.cache_resource
 def read_config_yaml(yaml_path):
     """
-    Read the yaml fields that store the paths used in this python file.
+    Read the yaml fields that store the paths used in this python file. @cache_resource will save the returns of the
+    function, so it won't be executing again when interacting with the streamlit page.
 
     Parameters
     ----------
@@ -27,12 +28,12 @@ def read_config_yaml(yaml_path):
     """
     with open(yaml_path) as yaml_file:
         config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-        dags_paths = config['dags_paths']
-        data_paths = config['data_paths']
-        models_paths = config['models_paths']
-        coms_paths = config['coms_paths']
+        dag_paths = config['dags_paths']
+        d_paths = config['data_paths']
+        m_paths = config['models_paths']
+        c_paths = config['coms_paths']
 
-    return dags_paths, data_paths, models_paths, coms_paths
+    return dag_paths, d_paths, m_paths, c_paths
 
 
 ########################################################################################################################
@@ -60,7 +61,11 @@ st.image(logo_url, width=500)
 st.title('Managing Models')
 
 # Add a brief description of the page
-st.write('Add description')
+st.write('The models repository table shows all the existing trained models and its information'
+         'about if they are activated or paused in Airflow. When the model is paused it means that it will not be '
+         'automatically trained week after week. In the manage models section, you can pause or activate any model '
+         'and even delete it if desired. Take into account that if you order a training for a paused model, it will'
+         'be activated again.')
 
 
 ########################################################################################################################
@@ -137,16 +142,16 @@ with cols[3]:
 # When pressing the delete button
 if delete_button:
 
-    # Request information about the runs of the validation DAG
-    file_ = open(coms_paths['dag_validation_runs'], 'w')
-    p = subprocess.Popen(coms_paths['list_dag_validation_runs'], stdout=file_)
+    # Request information about the runs of the evaluation DAG
+    file_ = open(coms_paths['dag_evaluation_runs'], 'w')
+    p = subprocess.Popen(coms_paths['list_dag_evaluation_runs'], stdout=file_)
     p.wait()  # Waits until the subprocess is finished
 
     # Read the information returned
-    f = open(coms_paths['dag_validation_runs'])
+    f = open(coms_paths['dag_evaluation_runs'])
     runs_info = json.load(f)
 
-    # If the model is involved in an execution of the validation DAG, then wait until it's finished
+    # If the model is involved in an execution of the evaluation DAG, then wait until it's finished
     if runs_info['dag_runs'][-1]['state'] == 'running' or runs_info['dag_runs'][-1]['state'] == 'queued':
 
         # Inform the user
@@ -154,12 +159,12 @@ if delete_button:
                    'few minutes.', icon="⚠️")
 
         # Remove the json file
-        os.remove(coms_paths['dag_validation_runs'])
+        os.remove(coms_paths['dag_evaluation_runs'])
 
         # Stop the streamlit page execution
         st.stop()
 
-    # If the model is not involved in an execution of the validation DAG, delete it
+    # If the model is not involved in an execution of the evaluation DAG, delete it
     else:
 
         # Remove model in the model repository and the correspondent DAG in python
@@ -176,7 +181,7 @@ if delete_button:
         historical.to_csv(data_paths['historical_dataset'], index=False)
 
         # Remove the json file
-        os.remove(coms_paths['dag_validation_runs'])
+        os.remove(coms_paths['dag_evaluation_runs'])
 
         # Inform the user that Airflow takes a few minutes to fully delete the DAG
         st.success('Correspondent files of the model has been successfully deleted.', icon="✅")

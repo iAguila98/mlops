@@ -14,7 +14,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 
 from scripts.train_script import train
-from scripts.validation_script import validation
+from scripts.evaluation_script import evaluation
 
 
 @provide_session
@@ -44,12 +44,12 @@ def train_model(eval_path, train_path, results_path, models_path):
     """
     This function performs the training and evaluation of the model. Once trained and evaluated, a new
     instance is written in the historical dataset, which will contain the model performance represented by different
-    metrics, the date of the training and validation date, as well as the model name and its hyperparameters. Finally,
+    metrics, the date of the training and evaluation date, as well as the model name and its hyperparameters. Finally,
     the model is saved in a .sav file.
 
     Parameters
     ----------
-    eval_path: path that indicates the validation dataset. (str)
+    eval_path: Path that indicates the test dataset. (str)
     train_path: path that indicates the training dataset. (str)
     results_path: path that indicates the historical dataset where the new model instance is written. (str)
     models_path: path that indicates the folder where the models are saved. (str)
@@ -90,11 +90,11 @@ def train_model(eval_path, train_path, results_path, models_path):
     trained_model, train_date = train(model, train_path)
 
     # We have to compute the performance with the evaluation script
-    results = validation(trained_model, model_name, eval_path)
+    results = evaluation(trained_model, model_name, eval_path)
 
     # Save the row that has to be written in historical dataset
     row = [model_name,
-           results['val_date'],
+           results['eval_date'],
            train_date,
            fit_intercept_model,
            n_jobs_model,

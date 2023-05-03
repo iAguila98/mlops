@@ -11,7 +11,7 @@ from airflow.utils.db import provide_session
 from csv import DictWriter
 from datetime import datetime
 
-from scripts.validation_script import validation
+from scripts.evaluation_script import evaluation
 
 
 default_args = {
@@ -42,26 +42,26 @@ def _get_execution_date_of_dag_datasets(*args, session=None, **kwargs):
     return dag_datasets_last_run.execution_date
 
 
-def evaluate(models_path, val_path, results_path):
+def evaluate(models_path, eval_path, results_path):
     """
     Given a path to models folder and a path to te validation dataset, add a row to results path for each model
     results.
 
     Parameters
     ----------
-    models_path: path to directory where models to test are stored. (str)
-    val_path: path to validation dataset. (str)
-    results_path: path to historical validation dataset. (str)
+    models_path: Path to directory where models to test are stored. (str)
+    eval_path: Path to test dataset. (str)
+    results_path: Path to historical dataset. (str)
 
     Returns
     -------
-    A new row will be added to historical validation dataset for each model with its validation scores. The row will
+    A new row will be added to historical dataset for each model with its evaluation scores. The row will
     have the following columns:
-    - model: model name. (str)
-    - train_date: datetime when the last training was performed. (datetime)
-    - val_date: datetime when the validation was performed. (datetime)
-    - hyperparameters: values of the hyperparameters according to the model.
-    - mae, wmape, rmse, tweedie: validation metrics. (float)
+    - model: Model name. (str)
+    - train_date: Datetime when the last training was performed. (datetime)
+    - eval_date: Datetime when the evaluation was performed. (datetime)
+    - hyperparameters: Values of the hyperparameters according to the model.
+    - mae, wmape, rmse, tweedie: Evaluation metrics. (float)
     """
     # From the historical_dataset.csv, get the date of the last training of each model
     historic_df = pd.read_csv(results_path)
@@ -77,7 +77,7 @@ def evaluate(models_path, val_path, results_path):
 
         # Evaluate the model and get the correspondent results
         model_name = model_file.split('.')[0]
-        results = validation(model, model_name, val_path)
+        results = evaluation(model=model, model_name=model_name, eval_path=eval_path)
 
         # Get additional column values to write historical_dataset.csv
         train_date = last_train_date[model_name]
@@ -91,7 +91,7 @@ def evaluate(models_path, val_path, results_path):
 
 
 with DAG(dag_id='test_models',
-         description='DAG that will get trigger daily to validate the active models.',
+         description='DAG that will get trigger daily to evaluate the active models.',
          schedule='0 0 * * *',
          default_args=default_args,
          start_date=datetime(2023, 1, 1),
@@ -111,7 +111,7 @@ with DAG(dag_id='test_models',
         python_callable=evaluate,
         op_kwargs={
             'models_path': './shared_volume/models/',
-            'val_path': './shared_volume/data/test_data.csv',
+            'eval_path': './shared_volume/data/test_data.csv',
             'results_path': './shared_volume/data/historical_dataset.csv'
         }
     )

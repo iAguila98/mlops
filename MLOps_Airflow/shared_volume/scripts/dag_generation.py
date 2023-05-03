@@ -18,7 +18,7 @@ with open('MLOps_Airflow/shared_volume/config.yaml') as yaml_file:
     scripts_paths = config['scripts_paths']
     coms_paths = config['coms_paths']
 
-# Reading the historical validation dataset
+# Reading the historical dataset
 data = pd.read_csv(data_paths['historical_dataset'])
 filtered_data = data[data['train_requested']==True]
 

@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 from MLOps_Airflow.dags.scripts.train_script import train
-from MLOps_Airflow.dags.scripts.validation_script import validation
+from MLOps_Airflow.dags.scripts.evaluation_script import validation
 
 base_path = re.search(r'.+(mlops)', os.getcwd())[0]
 path2traindata = os.path.join(base_path, "MLOps_Airflow/shared_volume/data/train_data.csv")

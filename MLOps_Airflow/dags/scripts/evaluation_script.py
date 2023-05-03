@@ -4,23 +4,23 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_tweedie_deviance, mean_absolute_error
 
 
-def validation(model, model_name, eval_path):
+def evaluation(model, model_name, eval_path):
     """
-    Given a model and a dataset, perform a validation using 4 different metrics.
+    Given a model and a dataset, perform an evaluation using 4 different metrics.
 
     Parameters
     ----------
-    model: model to validate (loaded pickle)
-    model_name: name of the model being evaluated (str)
-    eval_path: path to validation dataset (str)
+    model: Model to evaluate (loaded pickle)
+    model_name: Name of the model being evaluated (str)
+    eval_path: Path to test dataset (str)
 
     Returns
     -------
-    Dictionary with model name and hyperaparameters, validation metrics and current date. (dict)
-    - model: model name that is evaluated. (str)
-    - hyperparameters: each hyperparameter is a key.
-    - mae, wmape, rmse, tweedie: validation metrics results. (float)
-    - val_date: current datetime. (datetime)
+    Dictionary with model name and hyperaparameters, evaluation metrics and current date. (dict)
+    - model: Model name that is evaluated. (str)
+    - hyperparameters: Each hyperparameter is a key.
+    - mae, wmape, rmse, tweedie: Evaluation metrics results. (float)
+    - val_date: Current datetime. (datetime)
     """
 
     # Read the test set and prepare it
@@ -54,7 +54,7 @@ def validation(model, model_name, eval_path):
                'wmape': wmape,
                'rmse': rmse,
                'tweedie': tweedie,
-               'val_date': pd.to_datetime('now', utc=True)}
+               'eval_date': pd.to_datetime('now', utc=True)}
 
     return results
 

@@ -1,17 +1,19 @@
 import json
 import os
-import pandas as pd
-import plotly.express as px
 import subprocess
-import streamlit as st
 import time
 import yaml
+
+import pandas as pd
+import plotly.express as px
+import streamlit as st
 
 
 @st.cache_resource
 def read_config_yaml(yaml_path):
     """
-    Read the yaml fields that store the paths used in this python file.
+    Read the yaml fields that store the paths used in this python file. @cache_resource will save the returns of the
+    function, so it won't be executing again when interacting with the streamlit page.
 
     Parameters
     ----------
@@ -26,31 +28,31 @@ def read_config_yaml(yaml_path):
     """
     with open(yaml_path) as yaml_file:
         config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-        data_paths = config['data_paths']
-        models_paths = config['models_paths']
-        scripts_paths = config['scripts_paths']
-        coms_paths = config['coms_paths']
+        d_paths = config['data_paths']
+        m_paths = config['models_paths']
+        s_paths = config['scripts_paths']
+        c_paths = config['coms_paths']
 
-    return data_paths, models_paths, scripts_paths, coms_paths
+    return d_paths, m_paths, s_paths, c_paths
 
 
 def plot_historical(dataset, metrics, graphs):
     """
-    From the dataset of historical validations of the models, a graph is generated for each of the calculated metrics.
+    From the historical dataset of the models, a graph is generated for each of the calculated metrics.
     The graph shows each trained model performance.
 
     Parameters
     ----------
-    dataset: historical validation dataset. It stores the trained models performances over time.
-    metrics: metrics computed in the validation.
-    graphs: it corresponds to the metric tabs from streamlit. Each tab shows the graph that corresponds to the metric.
+    dataset: Historical dataset. It stores the trained models performances over time.
+    metrics: Metrics computed in the evaluation.
+    graphs: It corresponds to the metric tabs from streamlit. Each tab shows the graph that corresponds to the metric.
 
     Returns
     -------
-    The plotted historical validation graphs for each metric.
+    The plotted historical evaluation graphs for each metric.
     """
     for i, tab in enumerate(graphs):
-        fig = px.line(dataset, x='val_date', y=metrics[i], color="model", markers=True)
+        fig = px.line(dataset, x='eval_date', y=metrics[i], color="model", markers=True)
         tab.plotly_chart(fig, use_container_width=True)
 
 
@@ -80,8 +82,10 @@ st.image(logo_url, width=500)
 st.title('Monitoring Models trained on M5 Dataset')
 
 # Description of the page functionality
-st.write('Monitor different trained models on the M5 preprocessed dataset. Check different types of '
-         'analysis and metrics.')
+st.write('The graph is the tool via the models performance can be monitored. The user can look at the different tabs '
+         'of the graph to see the values of the different metrics of the models over time. It is also possible to '
+         'interact with the chart legend to mark only the models of interest. Additionally, the evaluation of all '
+         'existing trained models can be ordered, which once completed will add the new metrics to the graph. ')
 
 
 ########################################################################################################################
@@ -89,7 +93,7 @@ st.write('Monitor different trained models on the M5 preprocessed dataset. Check
 # Read paths from the YAML
 data_paths, models_paths, scripts_paths, coms_paths = read_config_yaml('MLOps_Airflow/shared_volume/config.yaml')
 
-# Visualize historical graph validation
+# Visualize historical graph evaluation
 st.subheader('Historical Graph')
 historical = pd.read_csv(data_paths['historical_dataset'])
 column_metrics = ['mae', 'wmape', 'rmse', 'tweedie']
@@ -98,14 +102,14 @@ tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
 # Plot historical graphic
 plot_historical(historical, column_metrics, tabs)
 
-# Define two columns for the validate button and the refresh button
+# Define two columns for the evaluate button and the refresh button
 cols = st.columns(5)
 with cols[0]:
     refresh_button = st.button('REFRESH')
 with cols[1]:
     pass
 with cols[2]:
-    evaluate_button = st.button('VALIDATE')
+    evaluate_button = st.button('EVALUATE')
 with cols[3]:
     pass
 with cols[4]:
@@ -115,10 +119,10 @@ with cols[4]:
 ########################################################################################################################
 
 # Initialize dug_run_id argument used to check the dag run status
-if 'validation_run_id' not in st.session_state:
-    st.session_state.validation_run_id = ''
+if 'evaluation_run_id' not in st.session_state:
+    st.session_state.evaluation_run_id = ''
 
-# Initialize the state variable used to define the while loop that checks the validation run status
+# Initialize the state variable used to define the while loop that checks the evaluation run status
 state = ''
 
 # Activates the evaluation button
@@ -130,60 +134,60 @@ if evaluate_button:
     # When there are models trained, execute the following code
     if model_num != 0:
 
-        # Make a manual trigger of the DAG that validates the models (through a shell script)
-        file_ = open(coms_paths['validation_run_info'], 'w')
-        p = subprocess.Popen(coms_paths['trigger_validation'], stdout=file_)
+        # Make a manual trigger of the DAG that evaluates the models (through a shell script)
+        file_ = open(coms_paths['evaluation_run_info'], 'w')
+        p = subprocess.Popen(coms_paths['trigger_evaluation'], stdout=file_)
         p.wait()  # Waits until the subprocess is finished
 
         # Try to read the dag_run_id from the json. If there is an error, it is due to the connection with Airflow
         try:
             # Read the dag_run_id from the json created when the trigger is performed
-            f = open(coms_paths['validation_run_info'])
+            f = open(coms_paths['evaluation_run_info'])
             data = json.load(f)
-            st.session_state.validation_run_id = data['dag_run_id']
+            st.session_state.evaluation_run_id = data['dag_run_id']
 
         except:
             st.error('There is no connection with Airflow.', icon="🚨")
             # Delete json file
-            os.remove(coms_paths['validation_run_info'])
+            os.remove(coms_paths['evaluation_run_info'])
             st.stop()
 
         # Delete the json that contains the dag run id, used to check the status of the run
-        os.remove(coms_paths['validation_run_info'])
+        os.remove(coms_paths['evaluation_run_info'])
 
         # St.empty() allows to overwrite messages that are shown to the user in streamlit
         with st.empty():
 
             # Inform that the trigger has been successfully ordered
-            st.info('The validation of the models has been successfully ordered.', icon="ℹ️")
+            st.info('The evaluation of the models has been successfully ordered.', icon="ℹ️")
             time.sleep(3)  # Give time to the user to read the message
 
             # As long as the process has not been completed, whether successfully or not, keep in the loop.
             while state != 'success' and state != 'failed':
 
                 # Initialize argument used in the request to REST API
-                dag_run_id = st.session_state.validation_run_id
+                dag_run_id = st.session_state.evaluation_run_id
 
                 # Execute the request which returns the info about the DAG run and save it
-                file_ = open(coms_paths['validation_run_status'], 'w')
-                p = subprocess.Popen([coms_paths['check_validation_run_status'], dag_run_id],
+                file_ = open(coms_paths['evaluation_run_status'], 'w')
+                p = subprocess.Popen([coms_paths['check_evaluation_run_status'], dag_run_id],
                                      stdout=file_)
                 p.wait()  # Waits until the subprocess is finished
 
                 # Read the status from the DAG run info extracted
-                f = open(coms_paths['validation_run_status'])
+                f = open(coms_paths['evaluation_run_status'])
                 data = json.load(f)
                 state = data['state']
 
                 # Conditions to show messages to the user depending on the DAG run status
                 if state == 'success':
-                    st.success('The validation is completed.', icon="✅")
+                    st.success('The evaluation is completed.', icon="✅")
                 elif state == 'failed':
-                    st.error('The validation has failed.', icon="🚨")
+                    st.error('The evaluation has failed.', icon="🚨")
                 elif state == 'running':
-                    st.info('The validation is being performed.', icon="ℹ️")
+                    st.info('The evaluation is being performed.', icon="ℹ️")
                 elif state == 'queued':
-                    st.info('The validation is in queue.', icon="ℹ️")
+                    st.info('The evaluation is in queue.', icon="ℹ️")
                 else:
                     st.info('Status not expected. Please check the status in the Airflow Webserver: '
                             'http://localhost:8080/', icon="ℹ️")
@@ -191,8 +195,8 @@ if evaluate_button:
                 # Wait 2 seconds before repeating the iteration again
                 time.sleep(2)
 
-            # Delete the run_status.json when the validation is finished
-            os.remove(coms_paths['validation_run_status'])
+            # Delete the run_status.json when the evaluation is finished
+            os.remove(coms_paths['evaluation_run_status'])
 
     # When there are no models trained yet, notify the user
     else:

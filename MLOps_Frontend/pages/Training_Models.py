@@ -10,10 +10,12 @@ import streamlit as st
 from csv import DictWriter
 from datetime import datetime
 
+
 @st.cache_resource
 def read_config_yaml(yaml_path):
     """
-    Read the yaml fields that store the paths used in this python file.
+    Read the yaml fields that store the paths used in this python file. @cache_resource will save the returns of the
+    function, so it won't be executing again when interacting with the streamlit page.
 
     Parameters
     ----------
@@ -27,11 +29,11 @@ def read_config_yaml(yaml_path):
     """
     with open(yaml_path) as yaml_file:
         config = yaml.load(yaml_file, Loader=yaml.FullLoader)
-        data_paths = config['data_paths']
-        scripts_paths = config['scripts_paths']
-        coms_paths = config['coms_paths']
+        d_paths = config['data_paths']
+        s_paths = config['scripts_paths']
+        c_paths = config['coms_paths']
 
-    return data_paths, scripts_paths, coms_paths
+    return d_paths, s_paths, c_paths
 
 
 def get_rows_df(h_data):
@@ -52,14 +54,14 @@ def get_rows_df(h_data):
     rows_df = h_data.sort_values('train_date').groupby('model').tail(1)
     rows_df = rows_df.loc[:, h_data.columns != 'train_requested']
 
-    # Change the format of the validation adn training date
-    rows_df['val_date'] = pd.to_datetime(rows_df.val_date)
-    rows_df['val_date'] = rows_df['val_date'].dt.strftime('%d/%m/%Y, %H:%M:%S')
+    # Change the format of the evaluation and training date
+    rows_df['eval_date'] = pd.to_datetime(rows_df.eval_date)
+    rows_df['eval_date'] = rows_df['eval_date'].dt.strftime('%d/%m/%Y, %H:%M:%S')
     rows_df['train_date'] = pd.to_datetime(rows_df.train_date)
     rows_df['train_date'] = rows_df['train_date'].dt.strftime('%d/%m/%Y, %H:%M:%S')
 
     # Rename the main columns to facilitate the table visualization
-    rows_df.rename(columns={'model': 'Model Name', 'val_date': 'Validation Date', 'train_date': 'Training Date'},
+    rows_df.rename(columns={'model': 'Model Name', 'eval_date': 'Evaluation Date', 'train_date': 'Training Date'},
                    inplace=True)
 
     # Set index to model name
@@ -73,7 +75,7 @@ def check_airflow_connection():
     """
     Using a Shell command, the connection to Airflow is checked. This command is executed by making a request to Airflow
     to receive information about the model's DAG. In case of not receiving anything, it will give an error, which occurs
-     because there is no connection with Airflow.
+    because there is no connection with Airflow.
     """
     # Execute trigger to check whether there is connection with Airflow
     file = open(coms_paths['train_dag_info'], 'w')
@@ -108,9 +110,9 @@ st.image(logo_url, width=500)
 st.title('Training Models')
 
 # Add a brief description of the page
-st.write('On this page, you can see in the trained model table, all the types of models that have been trained. '
-         'Specifically, it provides information about the last model trained for each of them. In addition, '
-         'in this page it is possible to train already existing models or to create new ones by means of a model type '
+st.write('The trained model table shows all the different models that have been trained. '
+         'Specifically, it provides information about the last model trained for each of them. In the next section,'
+         'the user can order to retrain existing models or to create new ones by means of a model type '
          'and hyperparameters selection system.')
 
 
@@ -253,7 +255,7 @@ if train_button:
     else:
         raise Exception('DAG model no longer exists.')
 
-    # Write an initial row in the historical_validation dataset
+    # Write an initial row in the historical dataset
     with open(data_paths['historical_dataset'], 'a') as f_object:
         dictwriter_object = DictWriter(f_object, fieldnames=historical.columns)
         dictwriter_object.writerow(training_dict)
