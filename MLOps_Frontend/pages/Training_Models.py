@@ -128,7 +128,7 @@ table_dataframe = get_rows_df(historical)
 st.dataframe(table_dataframe)
 
 # Define refresh button to update the page and therefore the table
-refresh_button = st.button('REFRESH')
+refresh_button = st.button('REFRESH', help='Refresh the page to update the table.')
 
 # Define model types selectbox in the dashboard
 st.subheader('Train Your Model')
@@ -224,7 +224,7 @@ state = ''
 # Define two columns for the training button and the refresh button
 cols = st.columns(5)
 with cols[2]:
-    train_button = st.button('TRAIN')
+    train_button = st.button('TRAIN', help='Order the training of the selected model.')
 
 
 # Define the 'launch training' button and what it should execute

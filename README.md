@@ -158,3 +158,15 @@ the elements of the different dashboard pages, such as tables showing important 
 of the models performances. It also provides buttons to order different tasks such as training or evaluating a model.
 When executing a task, it also informs the user about the state of the running task. To achieve all this access 
 different resources in the shared_volume folder inside MLOps_Airflow.
+
+
+## Dashboard Design
+Some of the dashboard design features can be modified as desired, fields such as text font, text color and the colors 
+that make up the dashboard screens. These characteristics can be modified in a file named config.toml, which can be 
+found in the following path:
+```path
+MLOps_Frontend/config.toml
+```
+This file has been used to design the dashboard in a specific way. If you want to change the design, simply change the 
+value of the desired fields. The most important step is to add this file to the streamlit hidden folder located in 
+the Ubuntu personal folder. If the file is not added, the design changes will not be implemented.
