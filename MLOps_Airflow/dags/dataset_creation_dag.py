@@ -47,7 +47,7 @@ def preprocess_split_data(data_path, pre_data_path, train_path, test_path):
     """
     Preprocess the updated data, taking into account the old data, which is required to perform some of the
     preprocessing techniques. After preprocessing, the dataset is split into train and test sets. For the test set the
-    last calendar year of the data is selected and for the train set the remaining data is selected.
+    last 28 days of the data is selected and for the train set the remaining data is selected.
 
     Parameters
     ----------
@@ -68,15 +68,16 @@ def preprocess_split_data(data_path, pre_data_path, train_path, test_path):
     # Get last year that indicates the train-test split
     last_day = new_data['date'].iat[-1]
     last_day = datetime.strptime(last_day, "%Y-%m-%d")
-    last_year = datetime.strftime(datetime(last_day.year - 1, last_day.month, last_day.day), "%Y-%m-%d")
+    forecast_date = last_day - timedelta(days=28)
+    forecast_date = datetime.strftime(forecast_date, "%Y-%m-%d")
 
     # Prepare and save train and test dataset
-    train_data = preprocessed_data[preprocessed_data['date'] < last_year]
+    train_data = preprocessed_data[preprocessed_data['date'] < forecast_date]
     train_set = train_data.set_index('date')
     train_set.to_csv(train_path)
 
     # Prepare and save train and test dataset
-    test_data = preprocessed_data[preprocessed_data['date'] >= last_year]
+    test_data = preprocessed_data[preprocessed_data['date'] >= forecast_date]
     test_set = test_data.set_index('date')
     test_set.to_csv(test_path)
 

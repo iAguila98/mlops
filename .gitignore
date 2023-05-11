@@ -6,9 +6,8 @@ MLOps_Airflow/dags/scripts/__pycache__/*
 
 MLOps_Airflow/logs/scheduler/*
 
-MLOps_Airflow/utils/old_test_data.csv
-MLOps_Airflow/utils/initial_train_data.csv
 MLOps_Airflow/utils/initial_test_data.csv
+MLOps_Airflow/utils/initial_train_data.csv
 MLOps_Airflow/utils/initial_extracted.csv
 MLOps_Airflow/utils/initial_preprocessed_data.csv
 
@@ -16,5 +15,3 @@ MLOps_Airflow/shared_volume/data/test_data.csv
 MLOps_Airflow/shared_volume/data/train_data.csv
 MLOps_Airflow/shared_volume/data/extracted.csv
 MLOps_Airflow/shared_volume/data/preprocessed_data.csv
-
-MLOps_Frontend/run_status.json

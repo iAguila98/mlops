@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from category_encoders import TargetEncoder
-from datetime import datetime
+from datetime import datetime, timedelta
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -65,22 +65,24 @@ class CategoricalEncoder(BaseEstimator, TransformerMixin):
                             'event_type_1_NoEvent', 'event_type_2_NoEvent',
                             'snap_CA', 'snap_TX', 'snap_WI'])
 
-        # Apply Target Encoding. The training set will only have information in its dates. The same for the test set.
-
+        # Take the date from 28 days ago, the models will try to forecast those 28 days.
         last_day = X['date'].iat[-1]
         last_day = datetime.strptime(last_day, "%Y-%m-%d")
-        last_year = datetime.strftime(datetime(last_day.year - 1, last_day.month, last_day.day), "%Y-%m-%d")
+        forecast_date = last_day - timedelta(days=28)
+        forecast_date = datetime.strftime(forecast_date, "%Y-%m-%d")
 
-        transformed_train = self.tr_enc.fit_transform(X[X['date'] < last_year][self.tr_attr],
-                                                      X[X['date'] < last_year]['sales'],
+        # Apply Target Encoding. The training set will only have information in its dates. The same for the test set.
+        transformed_train = self.tr_enc.fit_transform(X[X['date'] < forecast_date][self.tr_attr],
+                                                      X[X['date'] < forecast_date]['sales'],
                                                       smoothing=1.0)
-
-        transformed_test = self.tr_enc.fit_transform(X[X['date'] >= last_year][self.tr_attr],
-                                                     X[X['date'] >= last_year]['sales'],
+        transformed_test = self.tr_enc.fit_transform(X[X['date'] >= forecast_date][self.tr_attr],
+                                                     X[X['date'] >= forecast_date]['sales'],
                                                      smoothing=1.0)
 
+        # Concat train and test set again after the target encoding
         transformed_data = pd.concat([transformed_train, transformed_test], ignore_index=True)
 
+        # Delete the columns that are obsolete after applying the target encoding to them
         X = X.drop(columns=self.tr_attr)
         X = pd.concat([X, transformed_data], axis=1)
 
@@ -117,8 +119,6 @@ class AddAutoLag(BaseEstimator, TransformerMixin):
             for mns in self.means:
                 X['mean_' + str(mns)] = X.groupby('id')['sales'].transform(
                     lambda x: x.rolling(mns).mean())
-
-        X['sales'] = X.groupby('id')['sales'].shift(-28)
 
         return X
 
