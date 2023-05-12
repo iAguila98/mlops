@@ -79,23 +79,24 @@ for i, col in enumerate(st.columns(5)):
 
 st.subheader('Developed MLOps Framework')
 
-st.markdown("""<font size=3>The proposed MLOps framework consists of three main blocks: Data Fetching, Orchestration
-and Dashboard. </font>""", unsafe_allow_html=True)
+st.markdown("""<font size=3>The proposed MLOps framework consists of three main blocks: Data Generation and 
+Preparation, Orchestration and Dashboard. </font>""", unsafe_allow_html=True)
 
-st.markdown('<div style="text-align: justify;"><font size=3> DATA FETCHING: The data fetching system basically '
-            'simulates the growth of the dataset with new data over time. The original dataset is static, so no new '
-            'data is being generated. To create an MLOps framework and show its usefulness, it has been decided to '
-            'simulate this input of new data. The data fetching is responsible for generating and preprocessing a '
-            'new data batch corresponding to a new day of the week. The values of some of the feature are generated '
-            'with respect to the original data and others with respect to the data of the last recorded day, following '
-            'justified guidelines. Thanks to data fetching, it will be possible to appreciate the change in the '
-            'performance of the models as they are monitored. </font></div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align: justify;"><font size=3> DATA GENERATION AND PREPARATION: The data generation and preparation '
+            'system basically simulates the growth of the dataset with new data over time. The original dataset is ' 
+            'static, so new data is not being generated. To create an MLOps framework and show its usefulness, it '
+            'has been decided to simulate this input of new data. The data generation and preparation process is responsible for generating '
+            'and preprocessing a new data batch corresponding to a new day of the week. The values of some of the '
+            'feature are generated with respect to the original data and others with respect to the data of the '
+            'last recorded day, following justified guidelines. Thanks to data generation and preparation, it will be possible to '
+            'appreciate the change in the performance of the models as they are monitored. '
+            '</font></div>', unsafe_allow_html=True)
 
 st.write('')
 
 st.markdown('<div style="text-align: justify;"><font size=3> ORCHESTRATION: The orchestration module schedules and '
             'triggers different tasks like training a new model, retraining or evaluating. It also controls the data '
-            'fetching functionality, where one batch of new data is generated each day of the week. In this case, '
+            'generation and preparation functionality, where one batch of new data is generated and preprocessed each day of the week. In this case, '
             'Airflow has been used as the orchestrator module. It is an orchestrator which uses DAGs (Directed '
             'Acyclic Graph) to monitor and schedule tasks. Each task works independently and the execution of the DAG '
             'can be scheduled using cron expressions. Furthermore, sensors can be used to detect the execution status '
