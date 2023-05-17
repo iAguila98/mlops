@@ -114,7 +114,7 @@ for i, col in enumerate(st.columns(5)):
             st.write('')
 
 st.markdown('<div style="text-align: justify;"><font size=3> DASHBOARD: Using the dashboard, the user will be able to '
-            'check information about the status of the models and its performances over time. It also allow to order'
+            'check information about the status of the models and its performances over time. It also allows to order'
             'different tasks manually through the use of buttons. These tasks are: train/retrain models, evaluate '
             'models, pause/activate continuous training of models and delete models. The dashboard is divided into'
             'four pages: Main (current page), Managing Models, Monitoring Models and Training Models. Feel free to '
