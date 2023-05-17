@@ -222,8 +222,8 @@ if 'train_run_id' not in st.session_state:
 state = ''
 
 # Define two columns for the training button and the refresh button
-cols = st.columns(5)
-with cols[2]:
+cols = st.columns(7)
+with cols[3]:
     train_button = st.button('TRAIN', help='Order the training of the selected model.')
 
 

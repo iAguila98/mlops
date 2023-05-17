@@ -103,17 +103,11 @@ tabs = st.tabs(['mae', 'wmape', 'rmse', 'tweedie'])
 plot_historical(historical, column_metrics, tabs)
 
 # Define two columns for the evaluate button and the refresh button
-cols = st.columns(5)
+cols = st.columns(7)
 with cols[0]:
     refresh_button = st.button('REFRESH', help='Refresh the page to update the graph.')
-with cols[1]:
-    pass
-with cols[2]:
-    evaluate_button = st.button('EVALUATE', help='Order the evaluation of all models.')
 with cols[3]:
-    pass
-with cols[4]:
-    pass
+    evaluate_button = st.button('EVALUATE', help='Order the evaluation of all models.')
 
 
 ########################################################################################################################
