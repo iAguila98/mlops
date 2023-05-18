@@ -146,14 +146,14 @@ docker-compose.yaml file, which are:
 
 ## Code Architecture
 The project is structured in two main folders:
-1. MLOps_Airflow: Is the responsible for all the backend methods, dag functions (Airflow tasks) which retrain and 
+1. MLOps_Airflow: Is responsible for all the backend methods, dag functions (Airflow tasks) which retrain and 
 evaluate the models among other tasks are written inside. Furthermore, you can find the shared_volume folder which 
 contains data, models, python scripts and shell files to execute commands. These resources are placed in this folder
 because it is the one accessed from the Streamlit dashboard. Calls to certain files or the procurement of different 
 information from the dashboard (MLOps_Frontend folder) is done through this folder.
 
 
-2. MLOps_Frontend: Is the responsible for all the dashboard functionality. It contains the code necessary that organizes
+2. MLOps_Frontend: Is responsible for all the dashboard functionality. It contains the code necessary that organizes
 the elements of the different dashboard pages, such as tables showing important information, graphs showing the metrics
 of the models performances. It also provides buttons to order different tasks such as training or evaluating a model.
 When executing a task, it also informs the user about the state of the running task. To achieve all this access 
