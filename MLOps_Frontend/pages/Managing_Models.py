@@ -209,8 +209,6 @@ if pause_train_button:
 
         # Inform the user
         st.success('The DAG model has been paused. From now on, it will not be trained automatically.', icon="✅")
-        st.info('REMEMBER: If the model is trained manually in the Training Models page, it will be activated '
-                'again.', icon="ℹ️")
 
     # If the model is paused, then activate it
     elif paused:

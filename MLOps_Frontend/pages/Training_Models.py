@@ -219,7 +219,7 @@ if 'train_run_id' not in st.session_state:
     st.session_state.train_run_id = ''
 
 # Initialize the state variable used to define the while loop that checks the training run status
-state = ''
+state = 'running'
 
 # Define two columns for the training button and the refresh button
 cols = st.columns(7)
@@ -341,7 +341,7 @@ if train_button:
         time.sleep(3)  # Give time to the user to read the message
 
         # As long as the process has not been completed, whether successfully or not, keep in the loop.
-        while state != 'success' and state != 'failed':
+        while state == 'running':
 
             # Initialize arguments used in the request to REST API
             dag_id = model_name
@@ -366,7 +366,7 @@ if train_button:
             elif state == 'running':
                 st.info('The training is being performed.', icon="ℹ️")
             elif state == 'queued':
-                st.info('The training is in queue.', icon="ℹ️")
+                st.info('The training is in queue. Check if DAG is paused.', icon="ℹ️")
             else:
                 st.warning('Status not expected. Please check the status in the Airflow Webserver: '
                            'http://localhost:8080/', icon="⚠️")
