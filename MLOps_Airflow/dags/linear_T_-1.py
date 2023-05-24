@@ -70,7 +70,7 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the linear regression model
     if model_type == 'linear':
-        model = LinearRegression(fit_intercept=True, n_jobs=-1.0)
+        model = LinearRegression(fit_intercept=True, n_jobs=-1)
 
     # For the decision tree regressor model
     elif model_type == 'decision':
@@ -97,7 +97,7 @@ def train_model(eval_path, train_path, results_path, models_path):
            results['eval_date'],
            train_date,
            True,
-           -1.0,
+           -1,
            np.nan,
            np.nan,
            np.nan,

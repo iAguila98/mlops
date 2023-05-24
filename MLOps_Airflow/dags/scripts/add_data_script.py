@@ -67,10 +67,11 @@ def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
 
     # Modifying the 'sell_price' column
     prices = new_data['sell_price'].values.tolist()
-    for i in range(0, len(prices)):
-        random_numb = round(np.random.uniform(-0.1, 0.1), 2)
-        prices[i] = round(prices[i] + random_numb, 2)
-    new_data = new_data.assign(sell_price=prices)
+    if wday == 0:  # Only when it is the first day of the week
+        for i in range(0, len(prices)):
+            random_numb = round(np.random.uniform(-0.1, 0.1), 2)
+            prices[i] = round(prices[i] + random_numb, 2)
+        new_data = new_data.assign(sell_price=prices)
 
     return new_data
 
