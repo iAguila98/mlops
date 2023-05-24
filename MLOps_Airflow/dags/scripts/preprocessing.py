@@ -163,7 +163,7 @@ def preprocessing_pipeline(dataset):
         ('fill_price', FillSellPrice()),
         ('cat_encoder', CategoricalEncoder()),
         ('add_lag', AddLag()),
-        ('select_features', DeleteFeatures(attributes=del_attr)),
+        ('delete_features', DeleteFeatures(attributes=del_attr)),
         ('drop_na', DropNa())
     ])
 
