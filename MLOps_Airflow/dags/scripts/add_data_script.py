@@ -38,20 +38,36 @@ def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
     old_date = datetime.strptime(new_data['date'].unique()[0], "%Y-%m-%d")
     new_data = new_data.assign(date=datetime.strftime(old_date + timedelta(days=1), "%Y-%m-%d"))
 
-    # Modifying the column 'wday'
-    old_wday = new_data['wday'].unique()[0]
-    if old_wday == 6:
-        new_data = new_data.assign(wday=0)
-    else:
-        new_data = new_data.assign(wday=old_wday + 1)
-
-    # Modifying the column 'wm_yr_wk'.
+    # Modifying the column 'wm_yr_wk'
     old_wm = new_data['wm_yr_wk'].unique()[0]
-    wday = new_data['wday'].unique()[0]
-    if wday == 0:
+    old_wday = new_data['wday'].unique()[0]
+    if old_wday == 7:
         new_data = new_data.assign(wm_yr_wk=old_wm + 1)
     else:
         new_data = new_data
+
+    # Modifying the column 'wday'
+    if old_wday == 7:
+        new_data = new_data.assign(wday=1)
+    else:
+        new_data = new_data.assign(wday=old_wday + 1)
+
+    # Modifying the column 'weekday'
+    wday = new_data['wday'].unique()[0]
+    if wday == 1:
+        new_data = new_data.assign(weekday='Saturday')
+    elif wday == 2:
+        new_data = new_data.assign(weekday='Sunday')
+    elif wday == 3:
+        new_data = new_data.assign(weekday='Monday')
+    elif wday == 4:
+        new_data = new_data.assign(weekday='Tuesday')
+    elif wday == 5:
+        new_data = new_data.assign(weekday='Wednesday')
+    elif wday == 6:
+        new_data = new_data.assign(weekday='Thursday')
+    else:
+        new_data = new_data.assign(weekday='Friday')
 
     # Modifying the column 'month'
     new_data = new_data.assign(month=int(new_data['date'].unique()[0][5:7]))
@@ -67,7 +83,7 @@ def generate_data(data_batch_path, events_dict_path, snaps_dict_path):
 
     # Modifying the 'sell_price' column
     prices = new_data['sell_price'].values.tolist()
-    if wday == 0:  # Only when it is the first day of the week
+    if wday == 1:
         for i in range(0, len(prices)):
             random_numb = round(np.random.uniform(-0.1, 0.1), 2)
             prices[i] = round(prices[i] + random_numb, 2)
