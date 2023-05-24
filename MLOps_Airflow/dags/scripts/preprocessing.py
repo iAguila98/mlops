@@ -89,11 +89,12 @@ class CategoricalEncoder(BaseEstimator, TransformerMixin):
         return X
 
 
-class AddAutoLag(BaseEstimator, TransformerMixin):
+class AddLag(BaseEstimator, TransformerMixin):
     """
-    Class that adds new columns with auto lag on the sales number and mean sales.
-    Also, it adds a 28-day shift in the sales column as the model should predict
-    the sales 28 days from today.
+    Class that adds new lag features on the sales number according to each product. It also adds features indicating
+    the mean sales over the last x days. Finally, it is decided to create a new binary feature in the dataset that
+    indicates whether it is a weekend or not.
+
     """
 
     def __init__(self, lags=(5, 10, 15, 20, 28),
@@ -161,7 +162,7 @@ def preprocessing_pipeline(dataset):
     pipeline = Pipeline([
         ('fill_price', FillSellPrice()),
         ('cat_encoder', CategoricalEncoder()),
-        ('add_lag', AddAutoLag()),
+        ('add_lag', AddLag()),
         ('select_features', SelectImportantFeatures(attributes=del_attr)),
         ('drop_na', DropNa())
     ])
