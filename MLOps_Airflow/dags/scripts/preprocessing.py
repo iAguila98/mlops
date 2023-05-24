@@ -124,9 +124,9 @@ class AddLag(BaseEstimator, TransformerMixin):
         return X
 
 
-class SelectImportantFeatures(BaseEstimator, TransformerMixin):
+class DeleteFeatures(BaseEstimator, TransformerMixin):
     """
-    This class selects the opposite attributes that the ones indicated by the user.
+    This class deletes the attributes indicated by the user.
     """
 
     def __init__(self, attributes):
@@ -163,7 +163,7 @@ def preprocessing_pipeline(dataset):
         ('fill_price', FillSellPrice()),
         ('cat_encoder', CategoricalEncoder()),
         ('add_lag', AddLag()),
-        ('select_features', SelectImportantFeatures(attributes=del_attr)),
+        ('select_features', DeleteFeatures(attributes=del_attr)),
         ('drop_na', DropNa())
     ])
 
