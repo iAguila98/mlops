@@ -35,19 +35,19 @@ def create_dag(target_path, template_path, dag_id, hyperparameters):
     # If it is a linear regressor model, get its hyperparameters
     if model_type == 'linear':
         all_hyper[0] = str(hyperparameters[0])
-        all_hyper[1] = str(hyperparameters[1])
+        all_hyper[1] = str(int(hyperparameters[1]))
 
     # If it is a decision tree model, get its hyperparameters
     elif model_type == 'decision':
-        all_hyper[2] = str(hyperparameters[2])
-        all_hyper[3] = str(hyperparameters[3])
+        all_hyper[2] = str(int(hyperparameters[2]))
+        all_hyper[3] = str(int(hyperparameters[3]))
         all_hyper[4] = str(hyperparameters[4])
 
     # If it is a gradient boosting model, get its hyperparameters
     elif model_type == 'gradient':
         all_hyper[5] = str(hyperparameters[5])
-        all_hyper[6] = str(hyperparameters[6])
-        all_hyper[7] = str(hyperparameters[7])
+        all_hyper[6] = str(int(hyperparameters[6]))
+        all_hyper[7] = str(int(hyperparameters[7]))
         all_hyper[8] = str(hyperparameters[8])
 
     # There are no more type models implemented
