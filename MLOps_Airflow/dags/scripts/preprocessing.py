@@ -46,13 +46,18 @@ class CategoricalEncoder(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
+        # Convert item_id strings into numbers by using factorize function
+        X['item_id'] = pd.factorize(X['item_id'])[0]
+
         # We group snaps as the country id is enough to determine what state has snap
         X['snap'] = np.where((X['state_id'] == 'CA') & (X['snap_CA'] == 1) |
                              (X['state_id'] == 'TX') & (X['snap_TX'] == 1) |
                              (X['state_id'] == 'WI') & (X['snap_WI'] == 1), 1, 0)
 
+        # Apply One Hot Encoding by using the get_dummies function
         X = pd.get_dummies(X, columns=self.ohe_attr)
-    
+
+        # Group the duplicated columns created by some of the categories of event_type features
         X['event_type_Religious'] = X.event_type_1_Religious | X.event_type_2_Religious
         X['event_type_Cultural'] = X.event_type_1_Cultural | X.event_type_2_Cultural
         X['event_type_NoEvent'] = X.event_type_1_NoEvent & X.event_type_2_NoEvent
@@ -157,7 +162,7 @@ def preprocessing_pipeline(dataset):
     """
     This function builds the preprocessing pipeline with the previous classes.
     """
-    del_attr = ['id', 'item_id', 'dept_id', 'store_id', 'd', 'wm_yr_wk', 'weekday', 'year']
+    del_attr = ['id', 'dept_id', 'store_id', 'd', 'wm_yr_wk', 'weekday', 'year']
 
     pipeline = Pipeline([
         ('fill_price', FillSellPrice()),
