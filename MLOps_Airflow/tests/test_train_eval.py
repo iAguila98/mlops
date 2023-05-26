@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 from MLOps_Airflow.dags.scripts.train_script import train
-from MLOps_Airflow.dags.scripts.evaluation_script import validation
+from MLOps_Airflow.dags.scripts.evaluation_script import evaluation
 
 base_path = re.search(r'.+(mlops)', os.getcwd())[0]
 path2traindata = os.path.join(base_path, "MLOps_Airflow/shared_volume/data/train_data.csv")
@@ -39,9 +39,9 @@ class LinearModelTests(unittest.TestCase):
         time.sleep(1)
         self.assertNotEqual(initial_state, final_state)
 
-    def test_validation(self):
+    def test_evaluation(self):
         """
-        The purpose of this function is to test the 'validation' function used in a task from the validation_dag.py. In
+        The purpose of this function is to test the 'validation' function used in a task from the evaluation_dag.py. In
         order to do this, a new model is defined and trained to avoid using those running in the main code. We execute
         the function where the prediction is obtained (validation). The results are returned by the function and checked
         checks in order to know if the prediction has been performed. Specifically, we check whether it returns the
@@ -60,7 +60,7 @@ class LinearModelTests(unittest.TestCase):
         trained_model, train_date = train(model=model, train_path=path2traindata)
 
         # Execute the function to be tested
-        results = validation(model=trained_model, model_name=model_name, eval_path=path2testdata)
+        results = evaluation(model=trained_model, model_name=model_name, eval_path=path2testdata)
         metrics = list(results)[-5:-1]
 
         # Save each value metric from the results dictionary
