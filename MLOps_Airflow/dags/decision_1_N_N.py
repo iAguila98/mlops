@@ -60,7 +60,7 @@ def train_model(eval_path, train_path, results_path, models_path):
     New file of the trained model saved in the model directory. (.sav)
     """
     # Define the model according to the model type selected by the user
-    model_name = 'linear_T_-1'
+    model_name = 'decision_1_N_N'
     model_type = model_name.split('_')[0]
 
     # Initialize the possible string values related to the max_features hyperparameter
@@ -70,12 +70,12 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the linear regression model
     if model_type == 'linear':
-        model = LinearRegression(fit_intercept=True, n_jobs=-1)
+        model = LinearRegression(fit_intercept=np.nan, n_jobs=np.nan)
 
     # For the decision tree regressor model
     elif model_type == 'decision':
-        model = DecisionTreeRegressor(max_depth=np.nan, max_leaf_nodes=np.nan,
-                                      max_features=np.nan)
+        model = DecisionTreeRegressor(max_depth=1, max_leaf_nodes=None,
+                                      max_features=None)
 
     # For the gradient boosting regressor model
     elif model_type == 'gradient':
@@ -96,11 +96,11 @@ def train_model(eval_path, train_path, results_path, models_path):
     row = [model_name,
            results['eval_date'],
            train_date,
-           True,
-           -1,
            np.nan,
            np.nan,
-           np.nan,
+           1,
+           None,
+           None,
            np.nan,
            np.nan,
            np.nan,
@@ -130,11 +130,11 @@ default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id='linear_T_-1',
+dag = DAG(dag_id='decision_1_N_N',
           description='DAG that will get triggered weekly to train the correspondent model.',
           schedule='0 0 * * 0',
           default_args=default_args,
-          start_date=datetime(2023, 5, 1),
+          start_date=datetime(2023, 6, 1),
           catchup=False)
 
 with dag:

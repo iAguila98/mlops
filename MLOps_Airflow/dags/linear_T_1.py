@@ -60,7 +60,7 @@ def train_model(eval_path, train_path, results_path, models_path):
     New file of the trained model saved in the model directory. (.sav)
     """
     # Define the model according to the model type selected by the user
-    model_name = 'gradient_0001_10_1_N'
+    model_name = 'linear_T_1'
     model_type = model_name.split('_')[0]
 
     # Initialize the possible string values related to the max_features hyperparameter
@@ -70,7 +70,7 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the linear regression model
     if model_type == 'linear':
-        model = LinearRegression(fit_intercept=np.nan, n_jobs=np.nan)
+        model = LinearRegression(fit_intercept=True, n_jobs=1)
 
     # For the decision tree regressor model
     elif model_type == 'decision':
@@ -79,8 +79,8 @@ def train_model(eval_path, train_path, results_path, models_path):
 
     # For the gradient boosting regressor model
     elif model_type == 'gradient':
-        model = GradientBoostingRegressor(learning_rate=0.001, n_estimators=10,
-                                          max_depth=1, max_features=None)
+        model = GradientBoostingRegressor(learning_rate=np.nan, n_estimators=np.nan,
+                                          max_depth=np.nan, max_features=np.nan)
 
     # There are no more type models implemented
     else:
@@ -96,15 +96,15 @@ def train_model(eval_path, train_path, results_path, models_path):
     row = [model_name,
            results['eval_date'],
            train_date,
-           np.nan,
-           np.nan,
-           np.nan,
-           np.nan,
-           np.nan,
-           0.001,
-           10,
+           True,
            1,
-           None,
+           np.nan,
+           np.nan,
+           np.nan,
+           np.nan,
+           np.nan,
+           np.nan,
+           np.nan,
            results['mae'],
            results['wmape'],
            results['rmse'],
@@ -130,7 +130,7 @@ default_args = {
     'owner': 'Iago'
 }
 
-dag = DAG(dag_id='gradient_0001_10_1_N',
+dag = DAG(dag_id='linear_T_1',
           description='DAG that will get triggered weekly to train the correspondent model.',
           schedule='0 0 * * 0',
           default_args=default_args,

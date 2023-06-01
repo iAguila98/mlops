@@ -40,7 +40,7 @@ def create_dag(target_path, template_path, dag_id, hyperparameters):
     # If it is a decision tree model, get its hyperparameters
     elif model_type == 'decision':
         all_hyper[2] = str(int(hyperparameters[2]))
-        all_hyper[3] = str(int(hyperparameters[3]))
+        all_hyper[3] = str(hyperparameters[3])
         all_hyper[4] = str(hyperparameters[4])
 
     # If it is a gradient boosting model, get its hyperparameters
