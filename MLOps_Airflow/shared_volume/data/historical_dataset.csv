@@ -1,5 +1,3 @@
 model,eval_date,train_date,fit_intercept,n_jobs,d_max_depth,max_leaf_nodes,d_max_features,learning_rate,n_estimators,g_max_depth,g_max_features,mae,wmape,rmse,tweedie,train_requested
-linear_T_1,2023-05-31 18:34:22.116690+00:00,2023-05-31 18:34:21.984405+00:00,True,1.0,,,,,,,,1.144,0.877,1.889,3.569,False
-linear_T_1,2023-06-01 10:50:32.369607+00:00,2023-05-31 18:34:21.984405+00:00,True,1.0,,,,,,,,1.169,0.898,1.929,3.721,False
 linear_T_1,2023-06-01 10:50:54.630773+00:00,2023-06-01 10:50:54.495036+00:00,True,1.0,,,,,,,,1.168,0.897,1.929,3.72,False
-decision_1_N_N,2023-06-01 11:43:39.157215+00:00,2023-06-01 11:43:39.016323+00:00,nan,nan,1,None,None,nan,nan,nan,nan,1.268,0.973,2.224,4.944,False
+linear_T_1,2023-06-02 09:47:24.175634+00:00,2023-06-01 10:50:54.495036+00:00,True,1.0,,,,,,,,1.189,0.914,1.965,3.861,False
