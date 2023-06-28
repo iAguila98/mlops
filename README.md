@@ -19,7 +19,7 @@ Thanks to the help of Airflow, which is a platform that allows scheduling and mo
 a certain level of automation of the machine learning cycle is provided. Through this automation, the 
 framework has been designed to work as follows:
 
-1. Data Fetching: The framework is based on a regression task with a dataset called M5 Forecasting, which consists of a time series where 
+1. Data Generation & Preparation: The framework is based on a regression task with a dataset called M5 Forecasting, which consists of a time series where 
 the quantity of units sold of a series of products in different Walmart stores in different states of the USA must be 
 predicted. This dataset is initially static, so in order to simulate the input of new data, we have to simulate the 
 entry of new data, a series of functions have been developed to add new rows for each passing day. In this way, Airflow 
